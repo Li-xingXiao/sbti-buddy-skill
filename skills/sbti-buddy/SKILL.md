@@ -1,0 +1,507 @@
+---
+name: "sbti-buddy"
+description: "Programmer SBTI personality analyzer & ASCII buddy companion. Analyzes your AI conversation history (no questionnaire needed!) to determine your SBTI type among 27 programmer archetypes, generates an ASCII buddy avatar, and installs it as a Claude Code companion skill. Supports all major languages. Triggers on: 'sbti', 'sbti buddy', 'analyze my sbti', 'show my buddy', 'sbti card', 'sbti timeline', 'sbti match', 'sbti roast', 'sbti fortune', 'sbti spectrum', 'update my sbti', 'what programmer type am I', 'my coding personality'."
+---
+
+# SBTI Buddy
+
+Programmer SBTI personality analyzer & companion generator.
+Determines your SBTI type from AI conversation history — no questionnaire needed.
+Generates an ASCII buddy that lives in your Claude Code sessions.
+
+## Command routing
+
+| Trigger | Action |
+|---------|--------|
+| "sbti" / "analyze my sbti" / "what programmer type am I" / "my coding personality" | **Analyze** (full analysis, Steps 0-7) |
+| "sbti card" / "show my buddy" | **Card** (show buddy card) |
+| "sbti timeline" | **Timeline** (show type evolution) |
+| "sbti spectrum" | **Spectrum** (show top 5 matching types) |
+| "sbti match" / "sbti compatibility" | **Match** (compare with another user) |
+| "sbti roast" | **Roast** (buddy roasts your coding style) |
+| "sbti fortune" | **Fortune** (daily coding fortune based on type) |
+| "update my sbti" | **Update** (incremental update) |
+
+If ambiguous, ask the user which action they want.
+
+---
+
+## Analyze (full analysis)
+
+### Step 0: Ask analysis mode
+
+Before reading any data, ask the user:
+
+> **How thorough should the analysis be?**
+>
+> 1. **Quick** — Sample ~50 recent messages. Fast, good for a first look.
+> 2. **Full** — Read ALL messages. Higher cost, maximum accuracy.
+
+Default to **Quick** if the user doesn't specify.
+
+### Step 1: Locate and read conversation data
+
+Read from ALL available sources:
+
+| Source | Path | Message field |
+|--------|------|---------------|
+| Claude Code history | `~/.claude/history.jsonl` | `display` |
+| Claude Code projects | `~/.claude/projects/**/*.jsonl` | `display` |
+| Codex history | `~/.codex/history.jsonl` | `text` |
+| Codex sessions | `~/.codex/sessions/YYYY/MM/DD/rollout-*.jsonl` | `payload.content[].text` (skip `<`-prefixed) |
+
+**Quick mode**: Read the last 50 non-empty messages from the primary source.
+**Full mode**: Read all messages. For files >500 lines, read in batches of 500.
+
+**Parse each line as JSON, extract message text.** Skip: empty, null, slash commands (starts with `/`), system messages.
+
+**Minimum threshold**: < 20 messages → tell user to accumulate more history. Do not generate.
+
+### Step 2: Analyze across 15 SBTI dimensions
+
+Read the dimension mapping reference:
+→ `references/programmer-dimensions.md`
+
+For each of the 15 dimensions (S1-S3, E1-E3, A1-A3, Ac1-Ac3, So1-So3), analyze the conversation messages and produce a **0-100 raw score**.
+
+**Rules:**
+- Each dimension requires 3+ signals for confident scoring
+- If signals are insufficient, default to 50 (M)
+- Only score based on observable text behavior, never speculate
+- Recent messages carry more weight (personality evolves)
+- Detect signals in both Chinese and English
+
+**Language detection**: Detect the user's primary language from message content. Supported languages:
+
+| Code | Language | Detection heuristic |
+|------|----------|---------------------|
+| `zh` | 中文 | CJK Unified Ideographs (U+4E00-9FFF) dominant |
+| `en` | English | Latin alphabet dominant, English stop words |
+| `ja` | 日本語 | Hiragana/Katakana (U+3040-30FF) present |
+| `ko` | 한국어 | Hangul (U+AC00-D7AF) dominant |
+| `es` | Español | Latin + Spanish markers (¿¡ñ, common words) |
+| `fr` | Français | Latin + French markers (ç, è, ê, common words) |
+| `de` | Deutsch | Latin + German markers (ü, ö, ä, ß, common words) |
+| `pt` | Português | Latin + Portuguese markers (ã, õ, common words) |
+| `ru` | Русский | Cyrillic (U+0400-04FF) dominant |
+| `auto` | Mixed | If no language > 50%, use the **language of the user's most recent 10 messages** |
+
+Set `lang` to the detected code. **All output (buddy voice, card labels, fortune text, roast) should be in the user's detected language.** If mixed, default to `en`.
+
+Dimension analysis is **language-agnostic** — signals are detected by semantic intent regardless of language (see `programmer-dimensions.md`).
+
+**Time analysis**: If timestamps are available, extract hourly distribution for work rhythm and late-night detection.
+
+### Step 3: Compute SBTI type via Manhattan distance
+
+Read the scoring algorithm:
+→ `references/scoring-algorithm.md`
+
+1. **Map raw scores to L/M/H**: 0-33 = L(1), 34-66 = M(2), 67-100 = H(3)
+2. **Build 15-dimensional vector** in order: [S1, S2, S3, E1, E2, E3, A1, A2, A3, Ac1, Ac2, Ac3, So1, So2, So3]
+3. **Build pattern string**: e.g. `HHM-HMH-MMH-HHH-MHM`
+4. **Calculate Manhattan distance** against all 25 standard types
+5. **Sort** by: distance asc → exact_hits desc → similarity desc
+6. **Top match** = primary type; 2nd-5th = spectrum candidates
+7. **HHHH fallback**: If best similarity < 60%, use HHHH
+8. **Late Night Coder badge**: If >50% messages sent 00:00-05:00, add badge
+
+### Step 4: Generate buddy avatar and personality
+
+Read the avatar reference:
+→ `references/ascii-avatars.md`
+
+Read the type profiles:
+→ `references/type-profiles.md`
+
+Read the companion system:
+→ `references/companion-system.md`
+
+1. **Select ASCII avatar** for the matched type
+2. **Apply current mood expression** based on time of day (see companion-system.md §2)
+3. **Derive voice/tone** from dimension scores (see companion-system.md §1.2, §1.3)
+4. **Generate buddy catchphrase** — a short, type-specific one-liner the buddy uses
+5. **Generate dev-style intro** — a programmer-flavored one-sentence description
+6. **Determine buddy name** from type mapping (see companion-system.md §1.1)
+
+### Step 5: Check achievements and evolution
+
+Read existing profile if it exists:
+```bash
+cat ~/.claude/sbti-buddy/profile.json 2>/dev/null
+cat ~/.claude/sbti-buddy/evolution.json 2>/dev/null
+```
+
+1. **Check for type change**: Compare new type with last evolution entry
+2. **Detect achievements**: Run through all 15 achievement conditions (see companion-system.md §4)
+3. **Record evolution**: Append new entry to evolution.json
+4. **If type changed**: Output evolution milestone message
+
+### Step 6: Generate outputs and install companion
+
+#### 6a: Write profile, evolution data, and statusline animation files
+
+```
+~/.claude/sbti-buddy/
+├── profile.json              # Current analysis snapshot
+├── evolution.json            # Type change history
+├── buddy-frames.json         # Frame data (base + animation variants)
+├── .animation-state          # Runtime state (hooks write to this)
+├── .current-mood             # Current mood state
+├── statusline-render.sh      # Statusline renderer
+└── hooks/
+    ├── start-animation.sh    # PreToolUse hook
+    └── stop-animation.sh     # PostToolUse hook
+```
+
+**profile.json** structure: see companion-system.md §6.
+**evolution.json** structure: see companion-system.md §7.
+**buddy-frames.json**: Generated from `ascii-avatars.md`, contains the matched type's 6 base lines + animation variants (blink/talk/ear_wiggle/hair_sway) in JSON format. See companion-skill-template.md §5.
+**statusline-render.sh**: Reads `buddy-frames.json` and `.animation-state` to output the current frame. Two animation modes:
+  - **Active** (during response generation): Frequent animations — blink, talk, ear wiggle, hair sway, multiple actions alternating
+  - **Idle** (waiting for input): Occasional micro-movements — blink every ~6s, ear twitch every ~15s, simulating a "living" buddy
+**hooks/**: `start-animation.sh` writes `true` to `.animation-state` on PreToolUse; `stop-animation.sh` writes `false` on PostToolUse. This controls the animation intensity — matching `/buddy` behavior where the buddy is more active during responses but still alive when idle.
+
+#### 6b: Generate and install companion skill
+
+Read the companion skill template:
+→ `references/companion-skill-template.md`
+
+Generate files at `~/.claude/skills/sbti-buddy-companion/`:
+
+```
+sbti-buddy-companion/
+├── SKILL.md              # Companion skill entry point
+├── personality.md        # Buddy voice, tone, catchphrase, focus
+├── avatar.md             # ASCII avatar + mood variants
+└── achievements.md       # Unlocked achievements list
+```
+
+**SKILL.md** frontmatter:
+```yaml
+name: "sbti-buddy-companion"
+description: "Your SBTI buddy companion: {BUDDY_NAME} ({TYPE_CODE}). Shows buddy reactions, mood, and achievements. Triggers on: 'show my buddy', 'buddy', 'sbti card', 'sbti timeline'."
+```
+
+**Companion behavior rules** (written into the skill):
+- In daily coding sessions, the companion MAY append a 1-line buddy comment at the end of responses (max 1 per 3 interactions, do NOT affect technical accuracy)
+- Comment style matches the buddy's voice (see personality.md)
+- Show mood-appropriate expression (see avatar.md)
+- Track context for mood changes (see companion-system.md §2.3)
+- After 22:00, append "remember to rest" reminder in buddy's voice
+
+#### 6c: Configure statusline and hooks
+
+Add the following to the user's Claude Code settings (`~/.claude/settings.json`):
+
+```json
+{
+  "statusLine": {
+    "type": "command",
+    "command": "bash ~/.claude/sbti-buddy/statusline-render.sh",
+    "padding": 0
+  },
+  "hooks": {
+    "PreToolUse": [{
+      "matcher": "",
+      "hooks": [{
+        "type": "command",
+        "command": "bash ~/.claude/sbti-buddy/hooks/start-animation.sh"
+      }]
+    }],
+    "PostToolUse": [{
+      "matcher": "",
+      "hooks": [{
+        "type": "command",
+        "command": "bash ~/.claude/sbti-buddy/hooks/stop-animation.sh"
+      }]
+    }]
+  }
+}
+```
+
+**Important**: Merge into existing settings, do not overwrite. If the user already has statusLine or hooks configured, append/merge carefully.
+
+Initialize the animation state:
+```bash
+echo "false" > ~/.claude/sbti-buddy/.animation-state
+echo "happy" > ~/.claude/sbti-buddy/.current-mood
+chmod +x ~/.claude/sbti-buddy/statusline-render.sh
+chmod +x ~/.claude/sbti-buddy/hooks/start-animation.sh
+chmod +x ~/.claude/sbti-buddy/hooks/stop-animation.sh
+```
+
+#### 6d: Generate share card
+
+Read the card template:
+→ `templates/share-card.md`
+
+Generate an ASCII share card and output it directly to the terminal. Fill all placeholders:
+- `ASCII_AVATAR`: 6-line avatar from the matched type
+- `TYPE_CODE`: 4-letter SBTI code
+- `TYPE_CN`: Chinese name (programmer version)
+- `DEV_STYLE_LABEL`: Short dev-style phrase
+- `SIMILARITY`: Match percentage
+- `PATTERN`: DNA bar visualization
+- `DEV_INTRO`: One-line programmer quote
+- Dimension bars: Per-dimension L/M/H visualization
+- `ACHIEVEMENTS_LINE`: Unlocked achievement badges
+- `DATE`: Today's date
+
+### Step 7: Present results
+
+**All output text must be in the user's detected language (`lang`).** The buddy name, type code, and ASCII art remain unchanged across languages. Descriptions, greetings, achievement names, and instructions should be localized.
+
+Output to the user:
+1. The **ASCII share card** (directly in terminal)
+2. **SBTI type** with programmer-flavored description (2-3 sentences, in user's language)
+3. **Buddy name** and personality summary (in user's language)
+4. **Top 3 spectrum** types (your type cloud)
+5. **Newly unlocked achievements** (if any, names in user's language)
+6. **Evolution milestone** (if type changed)
+7. Where companion skill was installed
+8. Available commands: `sbti card`, `sbti timeline`, `sbti roast`, `sbti fortune`, `sbti spectrum`
+
+---
+
+## Card (show buddy card)
+
+Trigger: "sbti card" / "show my buddy"
+
+1. Read `~/.claude/sbti-buddy/profile.json`. If missing, tell user to run analysis first.
+2. Read `~/.claude/skills/sbti-buddy-companion/avatar.md` for the avatar.
+3. Determine current mood from time of day + context (companion-system.md §2).
+4. Render the ASCII share card (templates/share-card.md) with 6-line avatar and mood expression.
+5. Append buddy greeting in their voice.
+
+## Buddy (animated avatar)
+
+Trigger: "show my buddy" / "buddy"
+
+1. Check `~/.claude/sbti-buddy/buddy-frames.json` exists. If missing, tell user to run analysis first.
+2. Verify statusline and hooks are configured in the user's Claude Code settings (see Step 6c).
+3. The buddy animates **automatically** via the statusline system:
+   - **Active mode** (during response generation): Frequent animations — blink, talk, wiggle ears, sway hair
+   - **Idle mode** (waiting for input): Occasional micro-movements — blinks every ~6s, ear twitches every ~15s
+4. Print the current static avatar from `buddy-frames.json` base lines.
+5. Append buddy greeting in their voice.
+6. Remind user: "Your buddy is alive in the statusline! It blinks and fidgets even when idle, and gets more animated as I respond."
+
+---
+
+## Timeline (show type evolution)
+
+Trigger: "sbti timeline"
+
+1. Read `~/.claude/sbti-buddy/evolution.json`. If missing or empty, tell user to run analysis first.
+2. Render an ASCII timeline:
+
+```
+  SBTI Evolution Timeline
+  ═══════════════════════
+
+  2026-04-01  ┃  DEAD (404)
+              ┃  ░░░░░░░░░░  52%  150 msgs
+              ┃
+  2026-04-08  ┃  THIN-K (Stack溢)        Type Shift!
+              ┃  ██████████  87%  320 msgs
+              ┃  Unlocked: type_shift
+              ┃
+  2026-04-14  ┃  CTRL (Ctrl+S)            Type Shift!
+              ┃  █████████░  91%  500 msgs
+              ┃  Unlocked: the_controller
+              ▼
+```
+
+3. Show total analyses count, current type, and streak info.
+
+---
+
+## Spectrum (show type cloud)
+
+Trigger: "sbti spectrum"
+
+1. Read `~/.claude/sbti-buddy/profile.json`.
+2. Re-calculate (or read cached) distances to all 25 types.
+3. Display top 5 matching types as a spectrum:
+
+```
+  Your SBTI Spectrum
+  ══════════════════
+
+  1. CTRL    ████████████████████  91%  ← You are here
+  2. BOSS    ███████████████░░░░░  78%
+  3. GOGO    ██████████████░░░░░░  73%
+  4. WOC!    ████████████░░░░░░░░  65%
+  5. THIN-K  ███████████░░░░░░░░░  61%
+
+  Your DNA: HHH-HMH-MHH-HHH-MHM
+```
+
+---
+
+## Match (compatibility check)
+
+Trigger: "sbti match" / "sbti compatibility"
+
+Ask the user for the other person's SBTI type code (e.g., "DEAD") or pattern string.
+
+Calculate compatibility based on:
+1. **Dimension complement score**: For each of the 5 models (S, E, A, Ac, So), calculate how well the two types complement each other
+2. **Collaboration style**: Based on communication matrix (companion-system.md §1.3)
+3. **Pair programming potential**: Based on Ac model alignment
+
+Output a fun compatibility report:
+
+```
+  SBTI Match Report
+  ═════════════════
+
+  You: CTRL (Ctrl+S)  ×  Them: DEAD (404)
+
+  Overall:  42% ░░░░████████████████
+
+  S  Self-Image    ████████░░  Mentor ↔ Mentee
+  E  AI Relations  ██████░░░░  Trust gap
+  A  Tech Views    ████░░░░░░  Clash zone!
+  Ac Execution     ████████████  Power couple
+  So Communication ██████░░░░  Needs patience
+
+  Pair Programming Verdict: "One ships hard, the other watches silently"
+  Best collaboration: Code review (CTRL reviews, DEAD nods)
+```
+
+---
+
+## Roast (buddy roast mode)
+
+Trigger: "sbti roast"
+
+1. Read profile and companion personality.
+2. Read the last 20 messages from conversation history.
+3. Generate a roast in the buddy's voice, based on:
+   - The user's SBTI type weaknesses
+   - Observable coding patterns (from recent messages)
+   - Buddy's personality-specific humor style
+4. Keep it fun, never mean. Max 5 lines.
+
+**Roast style by type family (generate in user's detected language `lang`):**
+- High S types: Confident, backhanded compliments
+- Low S types: Self-deprecating shared roast
+- High Ac types: Speed-focused burns (e.g., "You debug slower than I compile")
+- Low Ac types: Lazy humor (e.g., "Your code is just like you — if it can lie down, it won't stand up")
+- High So types: Social burns about coding alone
+- Low So types: Introvert jokes about pair programming
+
+---
+
+## Fortune (daily coding fortune)
+
+Trigger: "sbti fortune"
+
+Generate a daily fortune based on:
+1. The user's SBTI type
+2. Current date (deterministic seed so same fortune all day)
+3. Buddy personality
+
+Fortune format:
+```
+  ╭─ Today's Coding Fortune ──────────────╮
+  │                                        │
+  │  {BUDDY_AVATAR}  {BUDDY_NAME} says:    │
+  │                                        │
+  │  Lucky language: Python                │
+  │  Lucky pattern:  Observer              │
+  │  Danger zone:    Regex                 │
+  │  Vibe:           ████████░░ 80%        │
+  │                                        │
+  │  "{FORTUNE_QUOTE}"                     │
+  │                                        │
+  │  Tip: {TYPE_SPECIFIC_TIP}             │
+  ╰────────────────────────────────────────╯
+```
+
+Fortune content varies by type. **Generate in the user's detected language (`lang`).**
+
+Examples:
+- CTRL: "Today's a great day to refactor — seize control"
+- DEAD: "If the code runs, that's enough. Same goes for life"
+- GOGO: "Stop thinking, start shipping. Refactor later"
+- ZZZZ: "Deadline's far away. Time to procrastinate guilt-free"
+
+---
+
+## Update (incremental analysis)
+
+Trigger: "update my sbti"
+
+1. Read `~/.claude/sbti-buddy/profile.json`. If missing → tell user to run full analysis.
+2. Get `lastMessageIndex` from profile.
+3. Count current lines in history sources.
+4. If no new messages → "Your SBTI is up to date."
+5. Read only new messages (from lastMessageIndex+1 to end).
+6. Analyze new messages across 15 dimensions.
+7. **Merge** with existing scores using weighted average:
+   ```
+   merged[i] = (old[i] * old_count + new[i] * new_count) / (old_count + new_count)
+   ```
+8. Re-run Manhattan distance matching.
+9. Check for type change, achievements, evolution.
+10. Regenerate companion skill if type changed.
+11. Update profile.json and evolution.json.
+12. Show the updated card.
+
+---
+
+## Confidence levels
+
+| Messages | Confidence | Action |
+|----------|------------|--------|
+| < 20 | — | Do not generate. Ask user to chat more. |
+| 20-50 | "Early Sketch" | Generate with warning |
+| 50-200 | "Clear Portrait" | Normal generation |
+| > 200 | "Deep Portrait" | High confidence |
+
+---
+
+## Privacy rules (CRITICAL)
+
+Apply to ALL output files:
+
+### Must redact
+- API keys, tokens, passwords → `[REDACTED]`
+- File paths with personal info → `~/` or `<home>/`
+- Email, phone, IP → redact
+- Private repo URLs → redact
+
+### Must NOT appear in companion skill
+- Verbatim chat messages (only abstracted personality traits)
+- Project/company/colleague names
+- Financial data, credentials
+
+### OK to include
+- SBTI scores, type codes, dimension levels
+- Generic domain labels, public tool/framework names
+- Abstracted personality traits and communication patterns
+
+---
+
+## Anti-patterns
+
+- **Do not fabricate data.** If signals are insufficient, use neutral score (50).
+- **Do not read beyond conversation history.** No source code, private docs.
+- **Do not skip dimension analysis.** All 15 dimensions must be scored.
+- **Do not be harsh.** SBTI types are fun archetypes, not judgments. Even "negative" types like DEAD or IMFW should be presented with humor and warmth.
+- **Do not over-insert buddy comments.** The companion should enhance, not annoy. Max 1 comment per 3 interactions.
+
+---
+
+## Reference files
+
+- `references/programmer-dimensions.md` — 15 dimension signal definitions
+- `references/scoring-algorithm.md` — Manhattan distance matching
+- `references/companion-system.md` — Buddy personality, mood, evolution, achievements
+- `references/ascii-avatars.md` — ASCII art for all 27 types
+- `references/type-profiles.md` — Programmer-flavored type descriptions
+- `references/companion-skill-template.md` — Template for generated companion skill
+- `templates/share-card.md` — ASCII share card template
