@@ -684,28 +684,33 @@ SBTI Buddy animation is implemented via Claude Code's **statusline + hooks** mec
 
 ### Architecture
 
+Both hooks write the current **epoch timestamp** to `.animation-state`. The render script checks how recently the last tool call happened:
+
 ```
-┌─ Active Mode (generating response) ─────────────┐
-│                                                    │
-│  PreToolUse hook → write state: animating=true     │
-│  statusline-render.sh → frequent animations        │
-│  (blink/talk/ear wiggle/hair sway alternating)     │
-│                                                    │
-├─ Idle Mode (waiting for input) ──────────────────┤
-│                                                    │
-│  PostToolUse hook → write state: animating=false   │
-│  statusline-render.sh → occasional micro-movements │
-│  (~6s blink, ~15s ear twitch, static otherwise)    │
-│                                                    │
-└────────────────────────────────────────────────────┘
+┌─ Active Mode (last tool call < 5s ago) ───────────┐
+│                                                     │
+│  PreToolUse hook → write epoch to .animation-state  │
+│  PostToolUse hook → write epoch to .animation-state │
+│  statusline-render.sh → cycle animation frames      │
+│  (blink/talk/ear wiggle/hair sway alternating)      │
+│                                                     │
+├─ Idle Mode (no tool calls for ≥ 5s) ──────────────┤
+│                                                     │
+│  statusline-render.sh → time-based micro-animations │
+│  blink every ~6s, ear twitch every ~15s             │
+│  mood-based expression between micro-animations     │
+│                                                     │
+└─────────────────────────────────────────────────────┘
 ```
+
+**Why timestamps instead of true/false?** PreToolUse and PostToolUse fire in quick succession for each tool call. A boolean flag gets set to "true" then immediately back to "false" before the statusline has a chance to refresh. Timestamps let the render script detect "recent activity" with a 5-second window, keeping animations visible throughout a multi-tool response.
 
 ### Generated File List
 
 ```
 ~/.claude/sbti-buddy/
 ├── buddy-frames.json          # Frame data (base + animation variants)
-├── .animation-state            # Runtime state file (written by hooks)
+├── .animation-state            # Last activity timestamp (epoch, written by hooks)
 ├── statusline-render.sh        # Statusline renderer
 └── hooks/
     ├── start-animation.sh      # PreToolUse hook
@@ -780,8 +785,8 @@ Statusline renderer, called by Claude Code's event-driven statusline system. The
 # Called by Claude Code statusline system (event-driven: refreshes on tool use)
 #
 # Animation modes:
-#   active (IS_ANIMATING=true)  — cycles through blink/talk/wiggle/sway each refresh
-#   idle   (IS_ANIMATING=false) — shows mood-based or time-based static expression
+#   active (last tool call < 5s ago) — cycles through blink/talk/wiggle/sway each refresh
+#   idle   (no recent tool calls)    — time-based micro-animations (blink, ear twitch)
 
 BUDDY_DIR="$HOME/.claude/sbti-buddy"
 FRAMES_DIR="$BUDDY_DIR/frames"
@@ -791,11 +796,13 @@ if [ ! -d "$FRAMES_DIR" ] || [ ! -f "$FRAMES_DIR/base.txt" ]; then
   exit 0
 fi
 
-IS_ANIMATING=$(cat "$BUDDY_DIR/.animation-state" 2>/dev/null || echo "false")
+# Read last activity timestamp (epoch seconds)
+LAST_ACTIVITY=$(cat "$BUDDY_DIR/.animation-state" 2>/dev/null || echo "0")
+NOW=$(date +%s)
 
-if [ "$IS_ANIMATING" = "true" ]; then
+# Determine if active (tool call within last 5 seconds)
+if [ "$LAST_ACTIVITY" -gt 0 ] 2>/dev/null && [ $((NOW - LAST_ACTIVITY)) -lt 5 ]; then
   # === Active mode: cycle through animation frames ===
-  # Use a counter that increments each render for reliable frame cycling
   COUNT=$(cat "$BUDDY_DIR/.frame-counter" 2>/dev/null || echo "0")
   COUNT=$(( (COUNT + 1) % 4 ))
   echo "$COUNT" > "$BUDDY_DIR/.frame-counter"
@@ -813,8 +820,27 @@ if [ "$IS_ANIMATING" = "true" ]; then
     cat "$FRAMES_DIR/base.txt"
   fi
 else
-  # === Idle mode: mood-based expression ===
-  # Check explicit mood file first (set by companion skill on context events)
+  # === Idle mode: micro-animations based on current time ===
+  SECONDS_NOW=$(date +%s)
+  CYCLE=$((SECONDS_NOW % 20))
+
+  # Blink for 1 second every ~6 seconds (at positions 0, 6, 12, 18)
+  if [ $((CYCLE % 6)) -eq 0 ]; then
+    if [ -f "$FRAMES_DIR/blink.txt" ]; then
+      cat "$FRAMES_DIR/blink.txt"
+      exit 0
+    fi
+  fi
+
+  # Ear twitch at position 15
+  if [ "$CYCLE" -eq 15 ]; then
+    if [ -f "$FRAMES_DIR/wiggle.txt" ]; then
+      cat "$FRAMES_DIR/wiggle.txt"
+      exit 0
+    fi
+  fi
+
+  # Otherwise: mood-based expression
   MOOD=$(cat "$BUDDY_DIR/.current-mood" 2>/dev/null || echo "")
 
   # Fall back to time-of-day mood
@@ -842,14 +868,14 @@ fi
 
 ```bash
 #!/bin/bash
-echo "true" > "$HOME/.claude/sbti-buddy/.animation-state"
+date +%s > "$HOME/.claude/sbti-buddy/.animation-state"
 ```
 
 ### 5. hooks/stop-animation.sh
 
 ```bash
 #!/bin/bash
-echo "false" > "$HOME/.claude/sbti-buddy/.animation-state"
+date +%s > "$HOME/.claude/sbti-buddy/.animation-state"
 ```
 
 ### 6. settings.json Configuration

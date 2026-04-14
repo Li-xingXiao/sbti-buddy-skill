@@ -16,7 +16,7 @@ Below are the generation rules and templates for each file.
 ├── profile.json          # Analysis snapshot
 ├── evolution.json        # Evolution history
 ├── buddy-frames.json     # Frame data (base + animation variants)
-├── .animation-state      # Runtime state (written by hooks)
+├── .animation-state      # Last activity timestamp (epoch, written by hooks)
 ├── .current-mood         # Current mood state
 ├── statusline-render.sh  # Statusline renderer
 └── hooks/
@@ -436,17 +436,18 @@ Uses the **Statusline Animation System** template from `ascii-avatars.md`, fille
 2. Fill all `{{...}}` placeholders in `buddy-frames.json` with the matched type's base frame and animation variant data
 3. Generate `statusline-render.sh` (copy from template — it reads from buddy-frames.json dynamically)
 4. Generate `hooks/start-animation.sh` and `hooks/stop-animation.sh`
-5. Initialize state files: `echo "false" > .animation-state`, `echo "happy" > .current-mood`
+5. Initialize state files: `echo "0" > .animation-state`, `echo "happy" > .current-mood`
 6. Set execute permissions: `chmod +x statusline-render.sh hooks/*.sh`
 7. Configure Claude Code settings.json (merge statusLine and hooks configuration)
 
 **How it works:**
-- `PreToolUse` hook → `start-animation.sh` → writes `animating=true` → **Active mode**
-- `PostToolUse` hook → `stop-animation.sh` → writes `animating=false` → **Idle mode**
-- Claude Code statusline continuously calls `statusline-render.sh` → reads state → outputs corresponding frame
-- **Active mode** (during response generation): Frequent animations — blink, talk, ear wiggle, hair sway, alternating actions
-- **Idle mode** (waiting for input): Occasional micro-movements — blink every ~6s, ear twitch every ~15s
+- Both `PreToolUse` and `PostToolUse` hooks write the current **epoch timestamp** to `.animation-state`
+- `statusline-render.sh` reads the timestamp and checks: if last tool call was < 5s ago → **Active mode**, otherwise → **Idle mode**
+- **Active mode** (recent tool call): Frequent animations — cycles through blink, talk, ear wiggle, hair sway on each refresh
+- **Idle mode** (no recent activity): Time-based micro-animations — blink every ~6s, ear twitch every ~15s, mood-based expression otherwise
 - Result: buddy is always "alive", occasionally blinks and fidgets when idle, becomes more active during responses — matching `/buddy` behavior
+
+**Why timestamps?** Boolean true/false toggles too fast — PreToolUse sets "true", PostToolUse immediately sets "false" before statusline refreshes. Timestamps create a 5-second activity window that spans multiple rapid tool calls.
 
 **Trigger timing:**
 - Generated on first analysis completion

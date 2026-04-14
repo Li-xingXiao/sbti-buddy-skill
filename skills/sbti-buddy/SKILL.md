@@ -156,7 +156,7 @@ cat ~/.claude/sbti-buddy/evolution.json 2>/dev/null
 │   ├── mood_tired.txt        # Tired mood expression
 │   ├── mood_frustrated.txt   # Frustrated mood expression
 │   └── mood_celebrating.txt  # Celebrating mood expression
-├── .animation-state          # Runtime state: "true" or "false" (hooks write)
+├── .animation-state          # Last activity timestamp (epoch seconds, hooks write)
 ├── .current-mood             # Current mood: "happy"/"tired"/"frustrated"/"celebrating"
 ├── .frame-counter            # Animation frame counter (0-3, increments each render)
 ├── .last-auto-update         # Timestamp of last auto-update check
@@ -172,9 +172,9 @@ cat ~/.claude/sbti-buddy/evolution.json 2>/dev/null
 **buddy-frames.json**: Generated from `ascii-avatars.md`, contains the matched type's 6 base lines + animation variants in JSON format.
 **frames/**: Pre-generated plain text frame files. Each file contains the full 6-line ASCII art with the appropriate line substitution already applied. Generated from `buddy-frames.json` during installation — see `ascii-avatars.md` §2 for the generation process. This eliminates `jq` dependency at runtime (~16ms per render vs ~200ms with jq). **Important**: Use Python (not awk/sed/shell) to generate these files — shell tools strip backslashes from ASCII art.
 **statusline-render.sh**: Event-driven renderer (Claude Code statusline refreshes on tool use, not periodically). See `ascii-avatars.md` §3. Two animation modes:
-  - **Active** (during response generation): Cycles through blink → talk → wiggle → sway using a counter file, guaranteeing a different frame on every statusline refresh
-  - **Idle** (waiting for input): Shows mood-based or time-of-day expression (tired after 22:00, focused 12:00-18:00, base otherwise)
-**hooks/**: `start-animation.sh` writes `true` to `.animation-state` on PreToolUse; `stop-animation.sh` writes `false` on PostToolUse.
+  - **Active** (last tool call < 5s ago): Cycles through blink → talk → wiggle → sway using a counter file, guaranteeing a different frame on every statusline refresh
+  - **Idle** (no recent tool calls): Time-based micro-animations — blink every ~6s, ear twitch every ~15s, mood-based expression otherwise
+**hooks/**: Both `start-animation.sh` and `stop-animation.sh` write the current epoch timestamp to `.animation-state`. The render script uses a 5-second activity window to determine active vs idle mode (boolean true/false toggles too fast — PostToolUse fires before statusline refreshes).
 
 #### 6b: Generate and install companion skill
 
@@ -269,7 +269,7 @@ Add the following to the user's Claude Code settings (`~/.claude/settings.json`)
 Initialize runtime state files:
 ```bash
 mkdir -p ~/.claude/sbti-buddy/frames
-echo "false" > ~/.claude/sbti-buddy/.animation-state
+echo "0" > ~/.claude/sbti-buddy/.animation-state
 echo "happy" > ~/.claude/sbti-buddy/.current-mood
 echo "0" > ~/.claude/sbti-buddy/.frame-counter
 echo "0" > ~/.claude/sbti-buddy/.last-auto-update
