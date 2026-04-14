@@ -364,8 +364,8 @@ Signal detection works across **9 languages** — your buddy speaks your languag
 
 ## References
 
-- [SBTI](https://sbti.fancc.de5.net/) — original SBTI test
-- [VibePortrait](https://github.com/dadwadw233/VibePortrait) — visible portrait skills
+- [SBTI (Social and Behavioral Traits Index)](https://sbti.fancc.de5.net/) — the original programmer personality test this skill is built on
+- [VibePortrait](https://github.com/dadwadw233/VibePortrait) — AI conversation portrait skill, inspiration for README design
 
 ---
 
