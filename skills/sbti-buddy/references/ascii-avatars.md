@@ -777,7 +777,8 @@ Statusline renderer, called by Claude Code's event-driven statusline system. The
 **Key design decisions:**
 - Uses pre-generated frame text files (no `jq` dependency at runtime)
 - Active mode uses a counter file that increments each call, guaranteeing a different frame on every refresh
-- Idle mode uses time-of-day mood with explicit mood file override
+- Idle mode uses time-based micro-animations (blink every ~6s, ear twitch every ~15s) with mood fallback
+- Output wraps each line with `|` borders (`|     $\/\/$     |`) to prevent Claude Code statusline from trimming leading whitespace — frame files stay at 16 chars, borders are added at render time only
 
 ```bash
 #!/bin/bash
@@ -787,6 +788,8 @@ Statusline renderer, called by Claude Code's event-driven statusline system. The
 # Animation modes:
 #   active (last tool call < 5s ago) — cycles through blink/talk/wiggle/sway each refresh
 #   idle   (no recent tool calls)    — time-based micro-animations (blink, ear twitch)
+#
+# Output wraps each line with | borders to prevent statusline whitespace trimming
 
 BUDDY_DIR="$HOME/.claude/sbti-buddy"
 FRAMES_DIR="$BUDDY_DIR/frames"
@@ -795,6 +798,13 @@ if [ ! -d "$FRAMES_DIR" ] || [ ! -f "$FRAMES_DIR/base.txt" ]; then
   echo ""
   exit 0
 fi
+
+# Helper: output frame with | borders to preserve leading whitespace
+show() {
+  while IFS= read -r line; do
+    printf '|%s|\n' "$line"
+  done < "$1"
+}
 
 # Read last activity timestamp (epoch seconds)
 LAST_ACTIVITY=$(cat "$BUDDY_DIR/.animation-state" 2>/dev/null || echo "0")
@@ -815,9 +825,9 @@ if [ "$LAST_ACTIVITY" -gt 0 ] 2>/dev/null && [ $((NOW - LAST_ACTIVITY)) -lt 5 ];
   esac
 
   if [ -f "$FRAMES_DIR/$FRAME" ]; then
-    cat "$FRAMES_DIR/$FRAME"
+    show "$FRAMES_DIR/$FRAME"
   else
-    cat "$FRAMES_DIR/base.txt"
+    show "$FRAMES_DIR/base.txt"
   fi
 else
   # === Idle mode: micro-animations based on current time ===
@@ -827,7 +837,7 @@ else
   # Blink for 1 second every ~6 seconds (at positions 0, 6, 12, 18)
   if [ $((CYCLE % 6)) -eq 0 ]; then
     if [ -f "$FRAMES_DIR/blink.txt" ]; then
-      cat "$FRAMES_DIR/blink.txt"
+      show "$FRAMES_DIR/blink.txt"
       exit 0
     fi
   fi
@@ -835,7 +845,7 @@ else
   # Ear twitch at position 15
   if [ "$CYCLE" -eq 15 ]; then
     if [ -f "$FRAMES_DIR/wiggle.txt" ]; then
-      cat "$FRAMES_DIR/wiggle.txt"
+      show "$FRAMES_DIR/wiggle.txt"
       exit 0
     fi
   fi
@@ -857,9 +867,9 @@ else
 
   # Use mood frame if available, otherwise base
   if [ -n "$MOOD" ] && [ -f "$FRAMES_DIR/mood_${MOOD}.txt" ]; then
-    cat "$FRAMES_DIR/mood_${MOOD}.txt"
+    show "$FRAMES_DIR/mood_${MOOD}.txt"
   else
-    cat "$FRAMES_DIR/base.txt"
+    show "$FRAMES_DIR/base.txt"
   fi
 fi
 ```
