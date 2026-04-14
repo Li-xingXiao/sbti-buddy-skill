@@ -42,7 +42,7 @@
 
 ## What is SBTI Buddy?
 
-A **Claude Code skill** built on [SBTI (Social and Behavioral Traits Index)](https://sbti.fancc.de5.net/) — a personality framework designed specifically for programmers. While the original SBTI uses a questionnaire, SBTI Buddy skips the form entirely: it reads your AI conversation history and **automatically** determines your type. No questionnaire needed.
+A **Claude Code skill** built on [SBTI](https://sbti.fancc.de5.net/) — a personality framework designed specifically for programmers. While the original SBTI uses a questionnaire, SBTI Buddy skips the form entirely: it reads your AI conversation history and **automatically** determines your type. No questionnaire needed.
 
 It generates:
 
@@ -58,7 +58,7 @@ It generates:
 
 ## SBTI Buddy 是什么？
 
-一个基于 [SBTI（社会行为特质指数）](https://sbti.fancc.de5.net/) 构建的 **Claude Code 技能**。SBTI 是专为程序员设计的人格框架，原版需要做测试题，而 SBTI Buddy 完全跳过问卷——直接读取你的 AI 对话历史，**自动**判定你的类型。不需要做任何测试题。
+一个基于 [SBTI](https://sbti.fancc.de5.net/) 构建的 **Claude Code 技能**。SBTI 是专为程序员设计的人格框架，原版需要做测试题，而 SBTI Buddy 完全跳过问卷——直接读取你的 AI 对话历史，**自动**判定你的类型。不需要做任何测试题。
 
 它会生成：
 
@@ -359,6 +359,13 @@ Signal detection works across **9 languages** — your buddy speaks your languag
 - [x] ASCII share card generation
 - [x] Incremental update (new messages only)
 
+
+---
+
+## References
+
+- [SBTI](https://sbti.fancc.de5.net/) — original SBTI test
+- [VibePortrait](https://github.com/dadwadw233/VibePortrait) — visible portrait skills
 
 ---
 
