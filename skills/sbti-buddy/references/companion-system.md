@@ -24,6 +24,7 @@ THIN-K → Stack溢     SHIT   → CoreDump    ZZZZ   → Sleep(∞)
 POOR → malloc失败    MONK   → Vim僧       IMSB   → /dev/null
 SOLO → Daemon        FU?K   → rm -rf      DEAD   → 404
 IMFW → Ghost线程     HHHH   → Hello World
+DRUNK → Late Night Coder
 ```
 
 ### 1.2 Voice Derivation Rules
