@@ -344,14 +344,41 @@ Trigger: "sbti spectrum"
 
 Trigger: "sbti match" / "sbti compatibility"
 
-Ask the user for the other person's SBTI type code (e.g., "DEAD") or pattern string.
+### Input methods
 
-Calculate compatibility based on:
-1. **Dimension complement score**: For each of the 5 models (S, E, A, Ac, So), calculate how well the two types complement each other
+Ask the user how they want to provide the other person's data. Three methods are supported:
+
+| Method | Input | Precision | Example |
+|--------|-------|-----------|---------|
+| **Type code** | 4-6 letter SBTI code | Type-level (uses standard vector) | `sbti match DEAD` |
+| **Pattern string** | 15-dimension L/M/H pattern | Dimension-level | `sbti match HHM-HMH-MMH-HHH-MHM` |
+| **Profile import** | Path to the other person's `profile.json` | Full precision (raw 0-100 scores) | `sbti match ~/teammate-profile.json` |
+
+**How to share data between users:**
+- Type code: run `sbti card`, read the type code from the card
+- Pattern string: run `sbti spectrum`, copy the pattern string shown
+- Profile export: copy `~/.claude/sbti-buddy/profile.json` and send to the other person
+
+### Resolution
+
+When input is a **type code**, look up its standard 15-dimension vector from `scoring-algorithm.md`.
+When input is a **pattern string**, parse it into a 15-dimension L/M/H vector directly.
+When input is a **profile.json**, read the raw 0-100 scores for all 15 dimensions.
+
+The user's own data always comes from their local `~/.claude/sbti-buddy/profile.json` (raw scores).
+
+### Compatibility calculation
+
+1. **Dimension complement score**: For each of the 5 models (S, E, A, Ac, So), calculate how well the two types complement each other. Use raw scores when available (profile import), otherwise use L/M/H values (1/2/3).
+   - **Same level** = Alignment (high compatibility in that area)
+   - **Adjacent levels** (e.g., M vs H) = Complement (one fills the other's gap)
+   - **Opposite levels** (L vs H) = Tension (potential friction OR strong complement depending on the dimension)
 2. **Collaboration style**: Based on communication matrix (companion-system.md §1.3)
 3. **Pair programming potential**: Based on Ac model alignment
 
-Output a fun compatibility report:
+### Output
+
+A fun compatibility report (in user's detected language `lang`):
 
 ```
   SBTI Match Report
