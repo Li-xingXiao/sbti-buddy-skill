@@ -33,7 +33,7 @@ Generated to `~/.claude/skills/sbti-buddy-companion/SKILL.md`.
 ```markdown
 ---
 name: "sbti-buddy-companion"
-description: "Your SBTI coding buddy: {BUDDY_NAME} ({TYPE_CODE} - {TYPE_CN}). A {DEV_STYLE} companion that adds personality to your coding sessions. Triggers on: 'show my buddy', 'buddy', 'sbti card', 'sbti timeline', 'sbti fortune', 'sbti roast'."
+description: "Your SBTI coding buddy: {BUDDY_NAME} ({TYPE_CODE} - {TYPE_CN}). A {DEV_STYLE} companion that adds personality to your coding sessions. Triggers on: 'show my buddy', 'buddy', 'sbti card', 'sbti share', 'sbti timeline', 'sbti fortune', 'sbti roast'."
 ---
 
 # {BUDDY_NAME} — Your SBTI Buddy
@@ -140,6 +140,17 @@ When triggered by "sbti timeline":
 1. Read `~/.claude/sbti-buddy/evolution.json`
 2. Render the evolution timeline in ASCII
 3. Show type changes, achievements, message counts
+
+### Share Card (Social Media PNG)
+
+When triggered by "sbti share":
+1. Read `~/.claude/sbti-buddy/profile.json`, `evolution.json`, and `buddy-frames.json`
+2. Read the HTML card template: `templates/share-card-html.md`
+3. Generate a complete self-contained HTML file following the template (inline CSS, no JS, no external resources)
+4. Generate a fresh type-specific humorous roast (2-3 sentences, in `{LANG}`)
+5. Save HTML to `/tmp/sbti-share-card.html`
+6. Screenshot via Chrome headless → `/tmp/sbti-share-card.png` (1200x630px)
+7. Report the PNG file path to the user
 
 ### Fortune Mode
 

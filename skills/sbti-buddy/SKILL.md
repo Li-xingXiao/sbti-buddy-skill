@@ -21,6 +21,7 @@ Generates an ASCII buddy that lives in your Claude Code sessions.
 | "sbti match" / "sbti compatibility" | **Match** (compare with another user) |
 | "sbti roast" | **Roast** (buddy roasts your coding style) |
 | "sbti fortune" | **Fortune** (daily coding fortune based on type) |
+| "sbti share" | **Share** (generate social media card PNG) |
 | "update my sbti" | **Update** (incremental update) |
 
 If ambiguous, ask the user which action they want.
@@ -356,7 +357,7 @@ Output to the user:
 6. **Evolution milestone** (if type changed)
 7. Where companion skill was installed
 8. **Buddy location**: Mention that the SBTI buddy lives in the bottom statusline, and coexists with the built-in `/buddy` if active.
-9. Available commands: `sbti card`, `sbti timeline`, `sbti roast`, `sbti fortune`, `sbti spectrum`
+9. Available commands: `sbti card`, `sbti timeline`, `sbti roast`, `sbti fortune`, `sbti spectrum`, `sbti share`
 
 ---
 
@@ -551,6 +552,54 @@ Examples:
 - DEAD: "If the code runs, that's enough. Same goes for life"
 - GOGO: "Stop thinking, start shipping. Refactor later"
 - ZZZZ: "Deadline's far away. Time to procrastinate guilt-free"
+
+---
+
+## Share (social media card)
+
+Trigger: "sbti share"
+
+Generates a visually stunning 1200x630px PNG card for sharing on social media. Uses HTML + Chrome headless screenshot.
+
+1. Read `~/.claude/sbti-buddy/profile.json`. If missing, tell user to run analysis first.
+2. Read `~/.claude/sbti-buddy/evolution.json`.
+3. Read `~/.claude/sbti-buddy/buddy-frames.json` for the ASCII avatar base lines.
+4. Read the HTML card template reference:
+   → `templates/share-card-html.md`
+5. Generate a complete, self-contained HTML file following the template structure:
+   - Fill all `{{PLACEHOLDER}}` values from profile.json, evolution.json, buddy-frames.json
+   - Calculate model averages: `S_AVG = round((S1.raw + S2.raw + S3.raw) / 3)`, etc.
+   - Generate a fresh type-specific humorous roast (2-3 sentences, see template humor guidelines)
+   - Render evolution timeline nodes (last 3 entries)
+   - Render achievement badges (unlocked vs locked)
+   - All text labels and humor in user's detected language (`meta.lang`)
+   - Copy avatar lines **verbatim** into `<pre>` tag — backslashes render correctly, do NOT escape them
+6. Save the HTML to `/tmp/sbti-share-card.html`.
+7. Screenshot via Chrome headless:
+   ```bash
+   google-chrome --headless --disable-gpu --no-sandbox \
+     --screenshot=/tmp/sbti-share-card.png \
+     --window-size=1200,630 \
+     file:///tmp/sbti-share-card.html
+   ```
+   If Chrome fails (exit code != 0), retry with xvfb-run wrapper:
+   ```bash
+   xvfb-run --auto-servernum google-chrome --headless --disable-gpu --no-sandbox \
+     --screenshot=/tmp/sbti-share-card.png \
+     --window-size=1200,630 \
+     file:///tmp/sbti-share-card.html
+   ```
+8. Verify the PNG was created (file exists and size > 0).
+9. Output: "Share card saved to `/tmp/sbti-share-card.png`"
+
+**HTML generation rules:**
+- All CSS must be inlined in a `<style>` block (no external stylesheets)
+- No JavaScript (static render only)
+- No external resources (no CDN fonts, no images — all system fonts)
+- Font stack: `'Noto Sans CJK SC', 'Noto Sans', sans-serif` for body; `'Noto Sans Mono', 'DejaVu Sans Mono', monospace` for avatar
+- Card body is exactly `width: 1200px; height: 630px; overflow: hidden; margin: 0`
+- Dark terminal aesthetic with green ASCII avatar on dark background
+- Use `text-overflow: ellipsis` for variable-length content (roast, dev intro)
 
 ---
 
