@@ -147,7 +147,9 @@ cat ~/.claude/sbti-buddy/evolution.json 2>/dev/null
 ├── buddy-frames.json         # Frame data (base + animation variants)
 ├── .animation-state          # Runtime state (hooks write to this)
 ├── .current-mood             # Current mood state
+├── .last-auto-update         # Timestamp of last auto-update check
 ├── statusline-render.sh      # Statusline renderer
+├── auto-update-check.sh      # Session start auto-update checker
 └── hooks/
     ├── start-animation.sh    # PreToolUse hook
     └── stop-animation.sh     # PostToolUse hook
@@ -214,6 +216,13 @@ Add the following to the user's Claude Code settings (`~/.claude/settings.json`)
         "type": "command",
         "command": "bash ~/.claude/sbti-buddy/hooks/stop-animation.sh"
       }]
+    }],
+    "SessionStart": [{
+      "matcher": "",
+      "hooks": [{
+        "type": "command",
+        "command": "bash ~/.claude/sbti-buddy/auto-update-check.sh"
+      }]
     }]
   }
 }
@@ -221,14 +230,59 @@ Add the following to the user's Claude Code settings (`~/.claude/settings.json`)
 
 **Important**: Merge into existing settings, do not overwrite. If the user already has statusLine or hooks configured, append/merge carefully.
 
-Initialize the animation state:
+Initialize the animation state and auto-update:
 ```bash
 echo "false" > ~/.claude/sbti-buddy/.animation-state
 echo "happy" > ~/.claude/sbti-buddy/.current-mood
+echo "0" > ~/.claude/sbti-buddy/.last-auto-update
 chmod +x ~/.claude/sbti-buddy/statusline-render.sh
+chmod +x ~/.claude/sbti-buddy/auto-update-check.sh
 chmod +x ~/.claude/sbti-buddy/hooks/start-animation.sh
 chmod +x ~/.claude/sbti-buddy/hooks/stop-animation.sh
 ```
+
+**auto-update-check.sh** logic:
+```bash
+#!/bin/bash
+# Auto-update check — runs on SessionStart
+# Only triggers incremental update if:
+#   1. profile.json exists (user has run analysis at least once)
+#   2. At least 24 hours since last auto-update
+#   3. At least 50 new messages since last analysis
+
+SBTI_DIR="$HOME/.claude/sbti-buddy"
+PROFILE="$SBTI_DIR/profile.json"
+LAST_CHECK="$SBTI_DIR/.last-auto-update"
+HISTORY="$HOME/.claude/history.jsonl"
+
+# Skip if no profile (never analyzed)
+[ ! -f "$PROFILE" ] && exit 0
+
+# Skip if checked within 24 hours
+LAST_TS=$(cat "$LAST_CHECK" 2>/dev/null || echo "0")
+NOW=$(date +%s)
+ELAPSED=$(( NOW - LAST_TS ))
+[ "$ELAPSED" -lt 86400 ] && exit 0
+
+# Count new messages since last analysis
+LAST_INDEX=$(jq -r '.meta.lastMessageIndex // 0' "$PROFILE")
+CURRENT_LINES=$(wc -l < "$HISTORY" 2>/dev/null || echo "0")
+NEW_MSGS=$(( CURRENT_LINES - LAST_INDEX ))
+
+# Skip if fewer than 50 new messages
+[ "$NEW_MSGS" -lt 50 ] && exit 0
+
+# Signal that auto-update is needed
+# Write flag file for the skill to pick up
+echo "$NOW" > "$LAST_CHECK"
+echo "AUTO_UPDATE_NEEDED" > "$SBTI_DIR/.auto-update-flag"
+```
+
+When the skill detects `~/.claude/sbti-buddy/.auto-update-flag` exists at session start, it should:
+1. Read the flag and delete it
+2. Run the incremental update silently (Steps 5-11 from the Update command)
+3. If type changed, notify the user with the buddy's voice: "Hey! Your type evolved while you were away!"
+4. If no type change, update profile.json silently without output
 
 #### 6d: Generate share card
 
@@ -460,12 +514,23 @@ Examples:
 
 ## Update (incremental analysis)
 
-Trigger: "update my sbti"
+Trigger: "update my sbti" (manual) or **auto-triggered on session start**
+
+### Auto-update
+
+On every Claude Code session start, `auto-update-check.sh` runs via the `SessionStart` hook. It checks:
+1. Profile exists (user has run analysis at least once)
+2. At least **24 hours** since last auto-update
+3. At least **50 new messages** since last analysis
+
+If all conditions are met, it sets a flag file. The skill picks up the flag and runs an incremental update silently — only notifying the user if their type changed.
+
+### Manual / auto-update steps
 
 1. Read `~/.claude/sbti-buddy/profile.json`. If missing → tell user to run full analysis.
 2. Get `lastMessageIndex` from profile.
 3. Count current lines in history sources.
-4. If no new messages → "Your SBTI is up to date."
+4. If no new messages → "Your SBTI is up to date." (skip for auto-update)
 5. Read only new messages (from lastMessageIndex+1 to end).
 6. Analyze new messages across 15 dimensions.
 7. **Merge** with existing scores using weighted average:
@@ -476,7 +541,7 @@ Trigger: "update my sbti"
 9. Check for type change, achievements, evolution.
 10. Regenerate companion skill if type changed.
 11. Update profile.json and evolution.json.
-12. Show the updated card.
+12. **Manual**: Show the updated card. **Auto**: Only notify if type changed ("Hey! Your type evolved while you were away!"), otherwise silent.
 
 ---
 

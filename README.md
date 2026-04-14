@@ -280,7 +280,8 @@ Your type isn't static — it evolves as you grow. Every analysis is recorded. R
 | `sbti match <path>` | Compare by importing the other person's `profile.json` |
 | `sbti roast` | Your buddy roasts your coding style |
 | `sbti fortune` | Daily coding fortune based on your type |
-| `update my sbti` | Incremental update (new messages only, fast) |
+| `update my sbti` | Manual incremental update (new messages only, fast) |
+| *(auto)* | Auto-updates on session start if 50+ new messages & 24h since last check |
 
 > **How to match with a friend:** Both of you run `sbti` first. Then share your type code (from `sbti card`), pattern string (from `sbti spectrum`), or `~/.claude/sbti-buddy/profile.json` file. The more detail you share, the more precise the match.
 >
@@ -326,6 +327,7 @@ Signal detection works across **9 languages** — your buddy speaks your languag
 - [x] 9-language support
 - [x] ASCII share card generation
 - [x] Incremental update (new messages only)
+- [x] Auto-update on session start (50+ new msgs, 24h cooldown)
 
 
 ---
