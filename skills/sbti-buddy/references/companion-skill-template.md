@@ -122,7 +122,7 @@ The buddy is always "alive" — it fidgets and blinks even when idle, and become
 
 When triggered by "show my buddy" / "buddy":
 1. Check if `~/.claude/sbti-buddy/buddy-frames.json` exists
-2. If yes, print the static base avatar from buddy-frames.json
+2. If yes, print the static base avatar from buddy-frames.json **inside a triple-backtick code block** (ASCII art has leading spaces for alignment — plain text markdown will strip them)
 3. If no, tell user to run analysis first
 4. Remind user: the buddy lives in the statusline, blinks when idle, and gets lively as Claude responds
 
@@ -131,7 +131,8 @@ When triggered by "show my buddy" / "buddy":
 When triggered by "sbti card":
 1. Read `~/.claude/sbti-buddy/profile.json`
 2. Render the ASCII share card (templates/share-card.md) with static avatar
-3. Show type, similarity, dimension bars, achievements
+3. **Output the entire card inside a triple-backtick code block** to preserve whitespace
+4. Show type, similarity, dimension bars, achievements
 
 ### Show Timeline
 

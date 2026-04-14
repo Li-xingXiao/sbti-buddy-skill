@@ -344,8 +344,10 @@ Generate an ASCII share card and output it directly to the terminal. Fill all pl
 
 **All output text must be in the user's detected language (`lang`).** The buddy name, type code, and ASCII art remain unchanged across languages. Descriptions, greetings, achievement names, and instructions should be localized.
 
+**CRITICAL: ASCII art whitespace preservation** — All ASCII avatars and share cards contain leading spaces for alignment. Markdown rendering strips leading spaces from plain text. You MUST always output ASCII art inside triple-backtick code blocks (` ``` `) to preserve spacing. Never output avatar lines as plain text.
+
 Output to the user:
-1. The **ASCII share card** (directly in terminal)
+1. The **ASCII share card** (wrapped in a ` ``` ` code block to preserve spacing)
 2. **SBTI type** with programmer-flavored description (2-3 sentences, in user's language)
 3. **Buddy name** and personality summary (in user's language)
 4. **Top 3 spectrum** types (your type cloud)
@@ -364,7 +366,7 @@ Trigger: "sbti card"
 1. Read `~/.claude/sbti-buddy/profile.json`. If missing, tell user to run analysis first.
 2. Read `~/.claude/skills/sbti-buddy-companion/avatar.md` for the avatar.
 3. Determine current mood from time of day + context (companion-system.md §2).
-4. Render the ASCII share card (templates/share-card.md) with 6-line avatar and mood expression.
+4. Render the ASCII share card (templates/share-card.md) with 6-line avatar and mood expression. **Output the entire card inside a triple-backtick code block** to preserve whitespace alignment.
 5. Append buddy greeting in their voice.
 
 ## Buddy (animated avatar)
@@ -376,7 +378,7 @@ Trigger: "show my buddy" / "buddy"
 3. The buddy animates **automatically** via the event-driven statusline system:
    - **Active mode** (during response generation): Cycles through blink → talk → wiggle → sway on each tool call, showing a different expression every time Claude uses a tool
    - **Idle mode** (between responses): Shows mood-based expression — tired face after 22:00, focused during afternoon, base expression otherwise
-4. Print the current static avatar from `frames/base.txt`.
+4. Print the current static avatar from `frames/base.txt` **inside a triple-backtick code block** to preserve leading whitespace.
 5. Append buddy greeting in their voice.
 6. Remind user: "Your buddy lives in the statusline! It changes expressions as I use tools — watch it blink, talk, and wiggle while I respond. Between responses, its mood matches the time of day."
 
