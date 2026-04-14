@@ -28,16 +28,47 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Claude Code](https://img.shields.io/badge/Claude_Code-skill-14b8a6?logo=anthropic&logoColor=white)](https://claude.ai/claude-code)
-[![Codex](https://img.shields.io/badge/Codex-skill-10a37f?logo=openai&logoColor=white)](https://github.com/openai/codex)
 [![GitHub stars](https://img.shields.io/github/stars/Li-xingXiao/sbti-buddy-skill?style=social)](https://github.com/Li-xingXiao/sbti-buddy-skill)
 
 **Personality tests capture a moment. Your AI conversations reveal who you really are.**
 
 **性格测试只能测出一瞬间的你。和 AI 的长期对话，才是真实的你。**
 
-[English](#what-is-sbti-buddy) · [中文](#sbti-buddy-是什么)
+[English](#what-is-sbti-buddy) · [中文](#sbti-buddy-是什么) · [Quick Start](#quick-start--快速开始)
 
 </div>
+
+---
+
+## What is SBTI Buddy?
+
+A **Claude Code skill** built on [SBTI (Social and Behavioral Traits Index)](https://sbti.fancc.de5.net/) — a personality framework designed specifically for programmers. While the original SBTI uses a questionnaire, SBTI Buddy skips the form entirely: it reads your AI conversation history and **automatically** determines your type. No questionnaire needed.
+
+It generates:
+
+- **🎴 Programmer Personality Type** — 27 programmer-specific archetypes across 5 behavioral models and 15 dimensions. Not generic MBTI — types like `CTRL (Ctrl+S the Architect)`, `DEAD (404 the Unmotivated)`, `MONK (Vim僧 the Terminal Sage)`
+- **🐾 Animated ASCII Buddy** — a companion that lives in your Claude Code statusline. It blinks when idle, animates while Claude responds, and changes mood throughout the day
+- **🧠 Companion Skill** — auto-installed skill that gives your buddy a voice. It comments on your code (in character), reminds you to rest after 10pm, and celebrates your achievements
+- **📈 Evolution Tracking** — your type changes over time. SBTI Buddy records every shift and shows your programmer growth timeline
+- **🏆 15 Achievements** — unlock badges like `🦉 Night Owl`, `💀 Back from Dead`, `🧘 Code Monk`
+
+> **Why no questionnaire?** Personality tests measure how you *think* you are in that moment. But your real coding personality shows in thousands of conversations — how you ask for help, how you respond to errors, how you communicate with AI. That can't be faked. SBTI Buddy reads the truth from your history.
+
+---
+
+## SBTI Buddy 是什么？
+
+一个基于 [SBTI（社会行为特质指数）](https://sbti.fancc.de5.net/) 构建的 **Claude Code 技能**。SBTI 是专为程序员设计的人格框架，原版需要做测试题，而 SBTI Buddy 完全跳过问卷——直接读取你的 AI 对话历史，**自动**判定你的类型。不需要做任何测试题。
+
+它会生成：
+
+- **🎴 程序员人格类型** — 27 种程序员专属人格原型，覆盖 5 大行为模型、15 个维度。不是泛泛的 MBTI，而是 `CTRL（拿捏者）`、`DEAD（404 开发者）`、`MONK（Vim僧）` 这样的程序员特有类型
+- **🐾 动态 ASCII 伙伴** — 住在你 Claude Code 状态栏里的小伙伴。空闲时偶尔眨眼，响应时活蹦乱跳，全天候陪你 coding
+- **🧠 伴侣技能** — 自动安装的技能，让你的 buddy 拥有独特的声音。它会用角色语气评论你的代码，晚上 10 点后提醒你休息
+- **📈 进化追踪** — 你的类型会随时间变化。SBTI Buddy 记录每次转变，展示你的程序员成长轨迹
+- **🏆 15 个成就** — 解锁 `🦉 夜猫子`、`💀 起死回生`、`🧘 代码僧侣` 等徽章
+
+> **为什么不做测试题？** 性格测试只能测出你「此刻觉得自己是什么样的人」。但你真实的编程人格，藏在成千上万次对话里——你怎么求助、怎么应对报错、怎么和 AI 沟通。这些没法伪装。SBTI Buddy 从你的历史中读出真相。
 
 ---
 
@@ -51,7 +82,7 @@ cp -R skills/sbti-buddy ~/.claude/skills/sbti-buddy
 sbti
 ```
 
-**Input:** Your `~/.claude/history.jsonl` + `~/.codex/history.jsonl` (read-only, never sent anywhere)
+**Input:** Your `~/.claude/history.jsonl` (read-only, never sent anywhere)
 
 **Output:**
 
@@ -99,37 +130,56 @@ sbti
 
 </details>
 
----
+<details>
+<summary><b>🐾 Meet the buddies (click to expand)</b></summary>
 
-## What is SBTI Buddy?
+<br>
 
-A skill for **Claude Code** and **Codex**. It reads your AI conversation history — **no questionnaire needed** — and generates:
+```
+  CTRL            BOSS            DEAD            MONK            SEXY
+  The Architect   The Tech Lead   The 404 Dev     Terminal Sage   The Lambda
 
-- **🎴 Programmer Personality Type** — 27 programmer-specific archetypes across 5 behavioral models and 15 dimensions. Not generic MBTI — types like `CTRL (Ctrl+S the Architect)`, `DEAD (404 the Unmotivated)`, `MONK (Vim僧 the Terminal Sage)`
-- **🐾 Animated ASCII Buddy** — a companion that lives in your Claude Code statusline. It blinks when idle, animates while Claude responds, and changes mood throughout the day
-- **🧠 Companion Skill** — auto-installed skill that gives your buddy a voice. It comments on your code (in character), reminds you to rest after 10pm, and celebrates your achievements
-- **📈 Evolution Tracking** — your type changes over time. SBTI Buddy records every shift and shows your programmer growth timeline
-- **🏆 15 Achievements** — unlock badges like `🦉 Night Owl`, `💀 Back from Dead`, `🧘 Code Monk`
+   \----/          $\/\/$          ______           ....           ~~**~~
+  /^\  /^\        /^\  /^\        /-\  /-\        /-\  /-\        /^\  /^\
+ < V    V >      < $    $ >      < X    X >      < -    - >      < *    - >
+ (  ----  )      (  ====  )      (  ____  )      (   __   )      (   33   )
+  \ -[]- /        \ -MM- /        \ -==- /        \ -OO- /        \ -SS- /
+  [ CTRL ]        [ BOSS ]        [ DEAD ]        [ MONK ]        [ SEXY ]
 
-> **Why no questionnaire?** Personality tests measure how you *think* you are in that moment. But your real coding personality shows in thousands of conversations — how you ask for help, how you respond to errors, how you communicate with AI. That can't be faked. SBTI Buddy reads the truth from your history.
 
----
+  SHIT            MUM             MALO            JOKE-R          HHHH
+  Angry Shipper   Error Handler   Chaos Monkey    Debug Comedian  Happy Coder
 
-## SBTI Buddy 是什么？
+    ~~~~            ////            (--)            *||*           ^^^^^^
+  /-\  /-\        /^\  /^\        /^\  /^\        /^\  /^\        /^\  /^\
+ < x    x >      < -    - >      < @    @ >      < *    * >      < ^    ^ >
+ (   ~~   )      (   __   )      (   ww   )      (  \__/  )      (  \__/  )
+  \ -ss- /        \  oo  /        \ -cc- /        \ -WW- /        \ -UU- /
+  [ SHIT ]        [ MUM  ]        [ MALO ]       [ JOKE-R ]       [ HHHH ]
+```
 
-一个 **Claude Code / Codex 技能**。读取你的 AI 对话历史——**不需要做任何测试题**——自动生成：
+*10 of 27 types shown. The rest? Discover yours by running `sbti`.*
 
-- **🎴 程序员人格类型** — 27 种程序员专属人格原型，覆盖 5 大行为模型、15 个维度。不是泛泛的 MBTI，而是 `CTRL（拿捏者）`、`DEAD（404 开发者）`、`MONK（Vim僧）` 这样的程序员特有类型
-- **🐾 动态 ASCII 伙伴** — 住在你 Claude Code 状态栏里的小伙伴。空闲时偶尔眨眼，响应时活蹦乱跳，全天候陪你 coding
-- **🧠 伴侣技能** — 自动安装的技能，让你的 buddy 拥有独特的声音。它会用角色语气评论你的代码，晚上 10 点后提醒你休息
-- **📈 进化追踪** — 你的类型会随时间变化。SBTI Buddy 记录每次转变，展示你的程序员成长轨迹
-- **🏆 15 个成就** — 解锁 `🦉 夜猫子`、`💀 起死回生`、`🧘 代码僧侣` 等徽章
+*展示了 27 种中的 10 种。剩下的？运行 `sbti` 亲自探索。*
 
-> **为什么不做测试题？** 性格测试只能测出你「此刻觉得自己是什么样的人」。但你真实的编程人格，藏在成千上万次对话里——你怎么求助、怎么应对报错、怎么和 AI 沟通。这些没法伪装。SBTI Buddy 从你的历史中读出真相。
+</details>
 
 ---
 
 ## Quick Start / 快速开始
+
+**Claude Code (marketplace):**
+
+```bash
+# Step 1: Add marketplace
+/plugin marketplace add Li-xingXiao/sbti-buddy-skill
+
+# Step 2: Install
+/plugin install sbti-buddy@sbti-buddy
+
+# Step 3: Run
+sbti
+```
 
 **Claude Code (manual):**
 
@@ -138,13 +188,6 @@ git clone https://github.com/Li-xingXiao/sbti-buddy-skill.git
 cp -R sbti-buddy-skill/skills/sbti-buddy ~/.claude/skills/sbti-buddy
 # Then in Claude Code:
 sbti
-```
-
-**Codex:**
-
-```bash
-$skill-installer install https://github.com/Li-xingXiao/sbti-buddy-skill/tree/main/skills/sbti-buddy
-# Then: Analyze my SBTI type
 ```
 
 ---
@@ -193,7 +236,9 @@ $skill-installer install https://github.com/Li-xingXiao/sbti-buddy-skill/tree/ma
 | ⚖️ **Balanced Middle** | `FAKE` .env · `OG8K` Legacy · `MALO` Chaos猴 · `JOKE-R` Bug丑 |
 | 😵 **Low-Function Struggling** | `IMFW` Ghost线程 · `IMSB` /dev/null · `DEAD` 404 · `SOLO` Daemon |
 | 🔧 **Specialist** | `ZZZZ` Sleep(∞) · `MONK` Vim僧 · `FU?K` rm -rf · `OH-NO` Segfault |
-| ✨ **Special** | `HHHH` Hello World · `DRUNK` Late Night Coder · `DIOR-s` Refactor君 |
+| ✨ **Special** | `HHHH` Hello World · `DIOR-s` Refactor君 |
+
+> 🌙 **Easter egg**: If >50% of your messages are sent between 00:00–05:00, you unlock the **Late Night Coder** badge — with a special dark-circles avatar overlay.
 
 Each type comes with: ASCII avatar · programmer-flavored intro · coding portrait · buddy catchphrase · dev style label.
 
@@ -262,10 +307,16 @@ Your type isn't static — it evolves as you grow. Every analysis is recorded. R
 | `sbti card` | Show your ASCII share card with current mood |
 | `sbti timeline` | View your type evolution history |
 | `sbti spectrum` | Top 5 matching types with similarity bars |
-| `sbti match` | Compare compatibility with another user |
+| `sbti match <type>` | Compare compatibility by type code, e.g. `sbti match DEAD` |
+| `sbti match <pattern>` | Compare by dimension pattern, e.g. `sbti match HHM-HMH-MMH-HHH-MHM` |
+| `sbti match <path>` | Compare by importing the other person's `profile.json` |
 | `sbti roast` | Your buddy roasts your coding style |
 | `sbti fortune` | Daily coding fortune based on your type |
 | `update my sbti` | Incremental update (new messages only, fast) |
+
+> **How to match with a friend:** Both of you run `sbti` first. Then share your type code (from `sbti card`), pattern string (from `sbti spectrum`), or `~/.claude/sbti-buddy/profile.json` file. The more detail you share, the more precise the match.
+>
+> **怎么跟朋友匹配：** 双方都先跑一次 `sbti`，然后分享类型码（从 `sbti card` 获取）、pattern 字符串（从 `sbti spectrum` 获取）、或直接发送 `~/.claude/sbti-buddy/profile.json` 文件。分享的信息越详细，匹配越精准。
 
 ---
 
@@ -280,7 +331,7 @@ Your type isn't static — it evolves as you grow. Every analysis is recorded. R
 
 ## Requirements / 环境要求
 
-- Claude Code or Codex
+- Claude Code
 - 20+ messages of conversation history
 - That's it. No API keys, no accounts, no dependencies.
 
@@ -307,9 +358,7 @@ Signal detection works across **9 languages** — your buddy speaks your languag
 - [x] 9-language support
 - [x] ASCII share card generation
 - [x] Incremental update (new messages only)
-- [ ] Community type sharing platform
-- [ ] Cross-machine buddy sync via GitHub
-- [ ] Team compatibility dashboard
+
 
 ---
 
