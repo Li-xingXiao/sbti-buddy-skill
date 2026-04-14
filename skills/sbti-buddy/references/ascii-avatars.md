@@ -677,33 +677,42 @@ Mapping between sbti.json key names and original SBTI type codes:
 
 ## Statusline Animation System (like /buddy)
 
-SBTI Buddy animation is implemented via Claude Code's **statusline + hooks** mechanism, matching `/buddy` behavior:
-- **During response generation (Active)**: Buddy plays frequent animation frames — blink, talk, ear wiggle, hair sway
-- **While idle (Idle)**: Buddy makes occasional micro-movements — blink every ~6s, ear twitch every ~15s, simulating a "living" feel
-- The buddy is always alive, just with varying activity levels
+SBTI Buddy animation is implemented via a **background daemon + statusline + hooks** mechanism:
+- A background daemon (`animate-loop.sh`) continuously pre-renders animation frames to `.current-render`
+- The statusline renderer just `cat`s the pre-rendered file — ultra-fast, always shows a fresh frame
+- Hooks write timestamps to `.animation-state` so the daemon knows when to speed up
+- **Active mode** (during response): 0.4s/frame — blink, talk, ear wiggle, hair sway
+- **Idle mode** (typing or waiting): 1.2s/frame — periodic blinks and twitches with mood awareness
+- The buddy is always alive — it animates during user input, during responses, and while idle
 
 ### Architecture
 
-Both hooks write the current **epoch timestamp** to `.animation-state`. The render script checks how recently the last tool call happened:
-
 ```
-┌─ Active Mode (last tool call < 5s ago) ───────────┐
-│                                                     │
-│  PreToolUse hook → write epoch to .animation-state  │
-│  PostToolUse hook → write epoch to .animation-state │
-│  statusline-render.sh → cycle animation frames      │
-│  (blink/talk/ear wiggle/hair sway alternating)      │
-│                                                     │
-├─ Idle Mode (no tool calls for ≥ 5s) ──────────────┤
-│                                                     │
-│  statusline-render.sh → time-based micro-animations │
-│  blink every ~6s, ear twitch every ~15s             │
-│  mood-based expression between micro-animations     │
-│                                                     │
-└─────────────────────────────────────────────────────┘
+┌─ Background Daemon (animate-loop.sh) ────────────────┐
+│                                                        │
+│  Runs continuously, pre-renders frames to              │
+│  .current-render every 0.4s (active) or 1.2s (idle)   │
+│                                                        │
+│  Active = .animation-state timestamp < 5s ago          │
+│  Idle = no recent timestamp                            │
+│                                                        │
+├─ Hooks ──────────────────────────────────────────────┤
+│                                                        │
+│  PreToolUse → start-animation.sh:                      │
+│    1. Write epoch to .animation-state                  │
+│    2. Ensure daemon is running (start if not)          │
+│  PostToolUse → stop-animation.sh:                      │
+│    1. Write epoch to .animation-state                  │
+│                                                        │
+├─ Statusline Renderer ────────────────────────────────┤
+│                                                        │
+│  statusline-render.sh → cat .current-render            │
+│  (fallback: direct base frame render if no daemon)     │
+│                                                        │
+└────────────────────────────────────────────────────────┘
 ```
 
-**Why timestamps instead of true/false?** PreToolUse and PostToolUse fire in quick succession for each tool call. A boolean flag gets set to "true" then immediately back to "false" before the statusline has a chance to refresh. Timestamps let the render script detect "recent activity" with a 5-second window, keeping animations visible throughout a multi-tool response.
+**Why a background daemon?** Claude Code's statusline is event-driven — it only re-evaluates on tool calls and messages, not on a periodic timer. Without a daemon, the buddy can only change frames when an event triggers a statusline refresh. The daemon pre-renders frames continuously so that whenever the statusline does refresh (during user input, tool calls, or messages), it always shows a fresh, different frame. This makes the buddy feel alive at all times.
 
 ### Generated File List
 
@@ -711,10 +720,13 @@ Both hooks write the current **epoch timestamp** to `.animation-state`. The rend
 ~/.claude/sbti-buddy/
 ├── buddy-frames.json          # Frame data (base + animation variants)
 ├── .animation-state            # Last activity timestamp (epoch, written by hooks)
-├── statusline-render.sh        # Statusline renderer
+├── .animate-pid                # Daemon PID file (auto-managed)
+├── .current-render             # Pre-rendered current frame (written by daemon)
+├── animate-loop.sh             # Background animation daemon
+├── statusline-render.sh        # Statusline renderer (cat .current-render)
 └── hooks/
-    ├── start-animation.sh      # PreToolUse hook
-    └── stop-animation.sh       # PostToolUse hook
+    ├── start-animation.sh      # PreToolUse hook (timestamp + daemon startup)
+    └── stop-animation.sh       # PostToolUse hook (timestamp)
 ```
 
 ### 1. buddy-frames.json
@@ -770,125 +782,158 @@ with open(f"frames/{name}.txt", "w") as f:
     f.write("\n".join(lines) + "\n")
 ```
 
-### 3. statusline-render.sh
+### 3. animate-loop.sh
 
-Statusline renderer, called by Claude Code's event-driven statusline system. The command re-evaluates on assistant messages and tool calls — **not** on a periodic timer.
+Background animation daemon. Started by `start-animation.sh` (PreToolUse hook) on first tool call. Self-terminates after 12 hours or if buddy files are removed.
 
 **Key design decisions:**
-- Uses pre-generated frame text files (no `jq` dependency at runtime)
-- Active mode uses a counter file that increments each call, guaranteeing a different frame on every refresh
-- Idle mode uses time-based micro-animations (blink every ~6s, ear twitch every ~15s) with mood fallback
-- Output wraps each line with `|` borders (`|     $\/\/$     |`) to prevent Claude Code statusline from trimming leading whitespace — frame files stay at 16 chars, borders are added at render time only
+- Pre-renders frames to `.current-render` so the statusline renderer is ultra-fast (`cat` only)
+- Active mode (0.4s/frame): lively cycling through blink → base → talk → base → wiggle → base → sway → base
+- Idle mode (1.2s/frame): periodic blinks and twitches mixed with mood-aware base frames
+- Atomic writes (write temp then `mv`) prevent partial reads
+- Output wraps each line with `|` borders (`|     $\/\/$     |`) to prevent statusline from trimming leading whitespace
+
+```bash
+#!/bin/bash
+# SBTI Buddy Animation Daemon
+# Background process that pre-renders animation frames to .current-render
+# Started by PreToolUse hook, self-terminates after 12h or if buddy files removed
+#
+# Active mode (tool call < 5s ago): fast cycling (0.4s/frame)
+# Idle mode (no recent activity):   moderate cycling (1.2s/frame)
+
+BUDDY_DIR="$HOME/.claude/sbti-buddy"
+FRAMES_DIR="$BUDDY_DIR/frames"
+RENDER_FILE="$BUDDY_DIR/.current-render"
+MAX_RUNTIME=43200  # 12 hours
+START_TIME=$(date +%s)
+
+# Animation sequences
+ACTIVE_SEQ=("blink" "base" "talk" "base" "wiggle" "base" "sway" "base")
+IDLE_SEQ=("base" "base" "blink" "base" "base" "wiggle" "base" "base" "base" "blink" "base" "sway")
+
+# Output frame with | borders to preserve whitespace in statusline
+show() {
+  local out=""
+  while IFS= read -r line; do
+    out+="$(printf '|%s|' "$line")"$'\n'
+  done < "$1"
+  printf '%s' "$out"
+}
+
+ACTIVE_IDX=0
+IDLE_IDX=0
+
+while true; do
+  NOW=$(date +%s)
+
+  # Self-terminate after max runtime
+  if [ $((NOW - START_TIME)) -gt $MAX_RUNTIME ]; then
+    rm -f "$BUDDY_DIR/.animate-pid"
+    exit 0
+  fi
+
+  # Check buddy files still exist
+  if [ ! -d "$FRAMES_DIR" ] || [ ! -f "$FRAMES_DIR/base.txt" ]; then
+    rm -f "$BUDDY_DIR/.animate-pid"
+    exit 0
+  fi
+
+  # Determine mode from last activity timestamp
+  LAST_ACTIVITY=$(cat "$BUDDY_DIR/.animation-state" 2>/dev/null || echo "0")
+
+  if [ "$LAST_ACTIVITY" -gt 0 ] 2>/dev/null && [ $((NOW - LAST_ACTIVITY)) -lt 5 ]; then
+    # === Active mode: fast frame cycling ===
+    FRAME="${ACTIVE_SEQ[$ACTIVE_IDX]}"
+    ACTIVE_IDX=$(( (ACTIVE_IDX + 1) % ${#ACTIVE_SEQ[@]} ))
+    IDLE_IDX=0
+    SLEEP=0.4
+  else
+    # === Idle mode: moderate cycling with mood awareness ===
+    FRAME="${IDLE_SEQ[$IDLE_IDX]}"
+    IDLE_IDX=$(( (IDLE_IDX + 1) % ${#IDLE_SEQ[@]} ))
+    SLEEP=1.2
+
+    # Apply mood override for "base" frames
+    if [ "$FRAME" = "base" ]; then
+      MOOD=$(cat "$BUDDY_DIR/.current-mood" 2>/dev/null || echo "")
+      if [ -z "$MOOD" ] || [ "$MOOD" = "happy" ]; then
+        HOUR=$(date +%H)
+        if [ "$HOUR" -ge 22 ] || [ "$HOUR" -lt 6 ]; then
+          FRAME="mood_tired"
+        elif [ "$HOUR" -ge 12 ] && [ "$HOUR" -lt 18 ]; then
+          FRAME="mood_focused"
+        fi
+      elif [ -f "$FRAMES_DIR/mood_${MOOD}.txt" ]; then
+        FRAME="mood_${MOOD}"
+      fi
+    fi
+  fi
+
+  # Atomic write: render to temp, then move
+  FRAME_FILE="$FRAMES_DIR/${FRAME}.txt"
+  if [ -f "$FRAME_FILE" ]; then
+    show "$FRAME_FILE" > "${RENDER_FILE}.tmp"
+    mv -f "${RENDER_FILE}.tmp" "$RENDER_FILE"
+  fi
+
+  sleep "$SLEEP"
+done
+```
+
+### 4. statusline-render.sh
+
+Ultra-fast statusline renderer. Just outputs the pre-rendered frame from `animate-loop.sh`. Falls back to direct base frame render if daemon hasn't started yet.
 
 ```bash
 #!/bin/bash
 # SBTI Buddy Statusline Renderer
-# Called by Claude Code statusline system (event-driven: refreshes on tool use)
-#
-# Animation modes:
-#   active (last tool call < 5s ago) — cycles through blink/talk/wiggle/sway each refresh
-#   idle   (no recent tool calls)    — time-based micro-animations (blink, ear twitch)
-#
-# Output wraps each line with | borders to prevent statusline whitespace trimming
+# Ultra-fast: just output the pre-rendered frame from animate-loop.sh daemon
+# Animation logic is handled by the background daemon, not here
 
 BUDDY_DIR="$HOME/.claude/sbti-buddy"
-FRAMES_DIR="$BUDDY_DIR/frames"
+RENDER_FILE="$BUDDY_DIR/.current-render"
 
-if [ ! -d "$FRAMES_DIR" ] || [ ! -f "$FRAMES_DIR/base.txt" ]; then
-  echo ""
-  exit 0
-fi
-
-# Helper: output frame with | borders to preserve leading whitespace
-show() {
-  while IFS= read -r line; do
-    printf '|%s|\n' "$line"
-  done < "$1"
-}
-
-# Read last activity timestamp (epoch seconds)
-LAST_ACTIVITY=$(cat "$BUDDY_DIR/.animation-state" 2>/dev/null || echo "0")
-NOW=$(date +%s)
-
-# Determine if active (tool call within last 5 seconds)
-if [ "$LAST_ACTIVITY" -gt 0 ] 2>/dev/null && [ $((NOW - LAST_ACTIVITY)) -lt 5 ]; then
-  # === Active mode: cycle through animation frames ===
-  COUNT=$(cat "$BUDDY_DIR/.frame-counter" 2>/dev/null || echo "0")
-  COUNT=$(( (COUNT + 1) % 4 ))
-  echo "$COUNT" > "$BUDDY_DIR/.frame-counter"
-
-  case $COUNT in
-    0) FRAME="blink.txt" ;;
-    1) FRAME="talk.txt" ;;
-    2) FRAME="wiggle.txt" ;;
-    3) FRAME="sway.txt" ;;
-  esac
-
-  if [ -f "$FRAMES_DIR/$FRAME" ]; then
-    show "$FRAMES_DIR/$FRAME"
-  else
-    show "$FRAMES_DIR/base.txt"
-  fi
+if [ -f "$RENDER_FILE" ]; then
+  cat "$RENDER_FILE"
 else
-  # === Idle mode: micro-animations based on current time ===
-  SECONDS_NOW=$(date +%s)
-  CYCLE=$((SECONDS_NOW % 20))
-
-  # Blink for 1 second every ~6 seconds (at positions 0, 6, 12, 18)
-  if [ $((CYCLE % 6)) -eq 0 ]; then
-    if [ -f "$FRAMES_DIR/blink.txt" ]; then
-      show "$FRAMES_DIR/blink.txt"
-      exit 0
-    fi
-  fi
-
-  # Ear twitch at position 15
-  if [ "$CYCLE" -eq 15 ]; then
-    if [ -f "$FRAMES_DIR/wiggle.txt" ]; then
-      show "$FRAMES_DIR/wiggle.txt"
-      exit 0
-    fi
-  fi
-
-  # Otherwise: mood-based expression
-  MOOD=$(cat "$BUDDY_DIR/.current-mood" 2>/dev/null || echo "")
-
-  # Fall back to time-of-day mood
-  if [ -z "$MOOD" ] || [ "$MOOD" = "happy" ]; then
-    HOUR=$(date +%H)
-    if [ "$HOUR" -ge 22 ] || [ "$HOUR" -lt 6 ]; then
-      MOOD="tired"
-    elif [ "$HOUR" -ge 12 ] && [ "$HOUR" -lt 18 ]; then
-      MOOD="focused"
-    else
-      MOOD=""
-    fi
-  fi
-
-  # Use mood frame if available, otherwise base
-  if [ -n "$MOOD" ] && [ -f "$FRAMES_DIR/mood_${MOOD}.txt" ]; then
-    show "$FRAMES_DIR/mood_${MOOD}.txt"
-  else
-    show "$FRAMES_DIR/base.txt"
+  # Fallback: direct render if daemon hasn't started yet
+  FRAMES_DIR="$BUDDY_DIR/frames"
+  if [ -f "$FRAMES_DIR/base.txt" ]; then
+    while IFS= read -r line; do
+      printf '|%s|\n' "$line"
+    done < "$FRAMES_DIR/base.txt"
   fi
 fi
 ```
 
-### 4. hooks/start-animation.sh
+### 5. hooks/start-animation.sh
+
+Writes activity timestamp AND ensures the animation daemon is running. The daemon auto-starts on first PreToolUse call of the session.
+
+```bash
+#!/bin/bash
+BUDDY_DIR="$HOME/.claude/sbti-buddy"
+
+# Write activity timestamp
+date +%s > "$BUDDY_DIR/.animation-state"
+
+# Ensure animation daemon is running
+PIDFILE="$BUDDY_DIR/.animate-pid"
+if ! { [ -f "$PIDFILE" ] && kill -0 "$(cat "$PIDFILE" 2>/dev/null)" 2>/dev/null; }; then
+  nohup bash "$BUDDY_DIR/animate-loop.sh" </dev/null >/dev/null 2>&1 &
+  echo $! > "$PIDFILE"
+fi
+```
+
+### 6. hooks/stop-animation.sh
 
 ```bash
 #!/bin/bash
 date +%s > "$HOME/.claude/sbti-buddy/.animation-state"
 ```
 
-### 5. hooks/stop-animation.sh
-
-```bash
-#!/bin/bash
-date +%s > "$HOME/.claude/sbti-buddy/.animation-state"
-```
-
-### 6. settings.json Configuration
+### 7. settings.json Configuration
 
 When installing the buddy, add the following to the user's Claude Code settings:
 

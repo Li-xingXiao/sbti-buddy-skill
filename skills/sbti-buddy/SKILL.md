@@ -157,24 +157,25 @@ cat ~/.claude/sbti-buddy/evolution.json 2>/dev/null
 │   ├── mood_frustrated.txt   # Frustrated mood expression
 │   └── mood_celebrating.txt  # Celebrating mood expression
 ├── .animation-state          # Last activity timestamp (epoch seconds, hooks write)
+├── .animate-pid              # Animation daemon PID file (auto-managed)
+├── .current-render           # Pre-rendered current frame (written by daemon)
 ├── .current-mood             # Current mood: "happy"/"tired"/"frustrated"/"celebrating"
-├── .frame-counter            # Animation frame counter (0-3, increments each render)
 ├── .last-auto-update         # Timestamp of last auto-update check
-├── statusline-render.sh      # Statusline renderer (reads frames/ dir)
+├── animate-loop.sh           # Background animation daemon
+├── statusline-render.sh      # Statusline renderer (cat .current-render)
 ├── auto-update-check.sh      # Session start auto-update checker
 └── hooks/
-    ├── start-animation.sh    # PreToolUse hook
-    └── stop-animation.sh     # PostToolUse hook
+    ├── start-animation.sh    # PreToolUse hook (timestamp + daemon startup)
+    └── stop-animation.sh     # PostToolUse hook (timestamp)
 ```
 
 **profile.json** structure: see companion-system.md §6.
 **evolution.json** structure: see companion-system.md §7.
 **buddy-frames.json**: Generated from `ascii-avatars.md`, contains the matched type's 6 base lines + animation variants in JSON format.
 **frames/**: Pre-generated plain text frame files. Each file contains the full 6-line ASCII art with the appropriate line substitution already applied. Generated from `buddy-frames.json` during installation — see `ascii-avatars.md` §2 for the generation process. This eliminates `jq` dependency at runtime (~16ms per render vs ~200ms with jq). **Important**: Use Python (not awk/sed/shell) to generate these files — shell tools strip backslashes from ASCII art.
-**statusline-render.sh**: Event-driven renderer (Claude Code statusline refreshes on tool use, not periodically). See `ascii-avatars.md` §3. Two animation modes:
-  - **Active** (last tool call < 5s ago): Cycles through blink → talk → wiggle → sway using a counter file, guaranteeing a different frame on every statusline refresh
-  - **Idle** (no recent tool calls): Time-based micro-animations — blink every ~6s, ear twitch every ~15s, mood-based expression otherwise
-**hooks/**: Both `start-animation.sh` and `stop-animation.sh` write the current epoch timestamp to `.animation-state`. The render script uses a 5-second activity window to determine active vs idle mode (boolean true/false toggles too fast — PostToolUse fires before statusline refreshes).
+**animate-loop.sh**: Background animation daemon. Pre-renders frames to `.current-render` continuously — 0.4s/frame in active mode, 1.2s/frame in idle mode. Started by `start-animation.sh` on first tool call, self-terminates after 12h. See `ascii-avatars.md` §3.
+**statusline-render.sh**: Ultra-fast renderer — just `cat .current-render`. Falls back to direct base frame render if daemon hasn't started. See `ascii-avatars.md` §4.
+**hooks/**: `start-animation.sh` writes epoch timestamp to `.animation-state` AND ensures the animation daemon is running (starts it if not). `stop-animation.sh` writes epoch timestamp only. The daemon uses the timestamp to determine active (< 5s) vs idle mode.
 
 #### 6b: Generate and install companion skill
 
@@ -271,8 +272,8 @@ Initialize runtime state files:
 mkdir -p ~/.claude/sbti-buddy/frames
 echo "0" > ~/.claude/sbti-buddy/.animation-state
 echo "happy" > ~/.claude/sbti-buddy/.current-mood
-echo "0" > ~/.claude/sbti-buddy/.frame-counter
 echo "0" > ~/.claude/sbti-buddy/.last-auto-update
+chmod +x ~/.claude/sbti-buddy/animate-loop.sh
 chmod +x ~/.claude/sbti-buddy/statusline-render.sh
 chmod +x ~/.claude/sbti-buddy/auto-update-check.sh
 chmod +x ~/.claude/sbti-buddy/hooks/start-animation.sh

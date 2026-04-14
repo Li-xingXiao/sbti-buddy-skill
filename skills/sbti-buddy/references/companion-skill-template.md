@@ -114,11 +114,11 @@ Use the mood to select your facial expression from avatar.md.
 
 ### Show Buddy (Animated via Statusline)
 
-Your buddy animates **automatically** via the Claude Code statusline system with two modes:
-- **Active** (during response generation): PreToolUse hook sets `animating=true` → frequent animations (blink, talk, wiggle ears, sway hair)
-- **Idle** (waiting for input): PostToolUse hook sets `animating=false` → occasional micro-movements (blink every ~6s, ear twitch every ~15s)
+Your buddy animates **automatically** via a background daemon + Claude Code statusline system:
+- **Active** (during response generation): Fast frame cycling (0.4s/frame) — blink, talk, wiggle ears, sway hair
+- **Idle** (typing or waiting): Moderate frame cycling (1.2s/frame) — periodic blinks and ear twitches with mood awareness
 
-The buddy is always "alive" — it fidgets and blinks even when idle, and becomes more animated during responses.
+The buddy is always "alive" — a background daemon (`animate-loop.sh`) continuously pre-renders frames, so the buddy animates during user input, during responses, and while idle.
 
 When triggered by "show my buddy" / "buddy":
 1. Check if `~/.claude/sbti-buddy/buddy-frames.json` exists
@@ -423,31 +423,36 @@ Uses the **Statusline Animation System** template from `ascii-avatars.md`, fille
 ```
 ~/.claude/sbti-buddy/
 ├── buddy-frames.json          # Frame data (base + animation variants)
-├── .animation-state            # Runtime state file (written by hooks)
-├── .current-mood               # Current mood state
-├── statusline-render.sh        # Statusline renderer
+├── .animation-state           # Last activity timestamp (epoch, written by hooks)
+├── .animate-pid               # Daemon PID file (auto-managed)
+├── .current-render            # Pre-rendered current frame (written by daemon)
+├── .current-mood              # Current mood state
+├── animate-loop.sh            # Background animation daemon
+├── statusline-render.sh       # Statusline renderer (cat .current-render)
 └── hooks/
-    ├── start-animation.sh      # PreToolUse hook
-    └── stop-animation.sh       # PostToolUse hook
+    ├── start-animation.sh     # PreToolUse hook (timestamp + daemon startup)
+    └── stop-animation.sh      # PostToolUse hook (timestamp)
 ```
 
 **Generation steps:**
 1. Read the Statusline Animation System section from `ascii-avatars.md`
 2. Fill all `{{...}}` placeholders in `buddy-frames.json` with the matched type's base frame and animation variant data
-3. Generate `statusline-render.sh` (copy from template — it reads from buddy-frames.json dynamically)
-4. Generate `hooks/start-animation.sh` and `hooks/stop-animation.sh`
-5. Initialize state files: `echo "0" > .animation-state`, `echo "happy" > .current-mood`
-6. Set execute permissions: `chmod +x statusline-render.sh hooks/*.sh`
-7. Configure Claude Code settings.json (merge statusLine and hooks configuration)
+3. Generate `animate-loop.sh` (copy from template)
+4. Generate `statusline-render.sh` (copy from template)
+5. Generate `hooks/start-animation.sh` and `hooks/stop-animation.sh`
+6. Initialize state files: `echo "0" > .animation-state`, `echo "happy" > .current-mood`
+7. Set execute permissions: `chmod +x animate-loop.sh statusline-render.sh hooks/*.sh`
+8. Configure Claude Code settings.json (merge statusLine and hooks configuration)
 
 **How it works:**
-- Both `PreToolUse` and `PostToolUse` hooks write the current **epoch timestamp** to `.animation-state`
-- `statusline-render.sh` reads the timestamp and checks: if last tool call was < 5s ago → **Active mode**, otherwise → **Idle mode**
-- **Active mode** (recent tool call): Frequent animations — cycles through blink, talk, ear wiggle, hair sway on each refresh
-- **Idle mode** (no recent activity): Time-based micro-animations — blink every ~6s, ear twitch every ~15s, mood-based expression otherwise
-- Result: buddy is always "alive", occasionally blinks and fidgets when idle, becomes more active during responses — matching `/buddy` behavior
+- A background daemon (`animate-loop.sh`) continuously pre-renders animation frames to `.current-render`
+- `statusline-render.sh` just `cat`s `.current-render` — ultra-fast, always shows a fresh frame
+- `PreToolUse` hook writes epoch timestamp to `.animation-state` AND ensures the daemon is running
+- `PostToolUse` hook writes epoch timestamp to `.animation-state`
+- Daemon checks timestamp: if < 5s ago → **Active mode** (0.4s/frame), otherwise → **Idle mode** (1.2s/frame)
+- Result: buddy is always "alive" — animates during user input, during responses, and while idle
 
-**Why timestamps?** Boolean true/false toggles too fast — PreToolUse sets "true", PostToolUse immediately sets "false" before statusline refreshes. Timestamps create a 5-second activity window that spans multiple rapid tool calls.
+**Why a background daemon?** The statusline is event-driven (only refreshes on tool calls/messages). Without a daemon, the buddy can only change frames on events. The daemon pre-renders continuously so every statusline refresh shows a different frame.
 
 **Trigger timing:**
 - Generated on first analysis completion
