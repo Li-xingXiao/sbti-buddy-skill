@@ -79,7 +79,7 @@ Randomization: Add ±30% jitter to base intervals to avoid a mechanical feel.
 | Animation | Line | Content |
 |-----------|------|---------|
 | blink | 2 | `   < -    - >   ` |
-| talk | 3 | `   (  -  - )   ` |
+| talk | 3 | `   (  -  -  )   ` |
 | ear_wiggle | 1 | `    /~\  /~\    ` |
 | hair_sway | 0 | `     /----\     ` |
 | mood:tired | 2 | `   < v    v >   ` |
@@ -104,10 +104,10 @@ Randomization: Add ±30% jitter to base intervals to avoid a mechanical feel.
 | blink | 2 | `   < -    - >   ` |
 | talk | 3 | `   (  =--=  )   ` |
 | ear_wiggle | 1 | `    /~\  /~\    ` |
-| hair_sway | 0 | `     $/\\/\$     ` |
+| hair_sway | 0 | `     $/\/\$     ` |
 | mood:tired | 2 | `   < $    $ >   ` |
 | mood:frustrated | 2 | `   < !    ! >   ` |
-| mood:celebrating | 3 | `   (  \\__/  )   ` |
+| mood:celebrating | 3 | `   (  \__/  )   ` |
 
 ---
 
@@ -151,7 +151,7 @@ Randomization: Add ±30% jitter to base intervals to avoid a mechanical feel.
 | ear_wiggle | 1 | `    /~\  /~\    ` |
 | hair_sway | 0 | `      $$$       ` |
 | mood:tired | 2 | `   < .    . >   ` |
-| mood:celebrating | 3 | `   (  \\$$/ )   ` |
+| mood:celebrating | 3 | `   (  \$$/  )   ` |
 
 ---
 
@@ -261,7 +261,7 @@ Randomization: Add ±30% jitter to base intervals to avoid a mechanical feel.
 | ear_wiggle | 1 | `    /~\  /~\    ` |
 | hair_sway | 0 | `      \/\/      ` |
 | mood:happy | 2 | `   < ^    ^ >   ` |
-| mood:celebrating | 3 | `   (   \\/ )   ` |
+| mood:celebrating | 3 | `   (   \/   )   ` |
 
 ---
 
@@ -327,7 +327,7 @@ Randomization: Add ±30% jitter to base intervals to avoid a mechanical feel.
 | ear_wiggle | 1 | `    /~\  /~\    ` |
 | hair_sway | 0 | `     -||---     ` |
 | mood:focused | 2 | `   < ^    . >   ` |
-| mood:celebrating | 3 | `   (  \\__/  )  ` |
+| mood:celebrating | 3 | `   (  \__/  )   ` |
 
 ---
 
@@ -392,7 +392,7 @@ Randomization: Add ±30% jitter to base intervals to avoid a mechanical feel.
 | talk | 3 | `   (  /  \  )   ` |
 | ear_wiggle | 1 | `    /~\  /~\    ` |
 | hair_sway | 0 | `      ||**      ` |
-| mood:happy | 3 | `   (  \\__/  )   ` |
+| mood:happy | 3 | `   (  \__/  )   ` |
 | mood:tired | 2 | `   < .    . >   ` |
 
 ---
@@ -437,7 +437,7 @@ Randomization: Add ±30% jitter to base intervals to avoid a mechanical feel.
 | ear_wiggle | 1 | `    /~\  /~\    ` |
 | hair_sway | 0 | `     ()  ()     ` |
 | mood:frustrated | 2 | `   < @    . >   ` |
-| mood:celebrating | 3 | `   ( ' \\/ ' )   ` |
+| mood:celebrating | 3 | `   ( ' \/ ' )   ` |
 
 ---
 
@@ -481,7 +481,7 @@ Randomization: Add ±30% jitter to base intervals to avoid a mechanical feel.
 | ear_wiggle | 1 | `    /~\  /~\    ` |
 | hair_sway | 0 | `      ||\|      ` |
 | mood:tired | 2 | `   < .    . >   ` |
-| mood:happy | 3 | `   (   \\/  )   ` |
+| mood:happy | 3 | `   (   \/   )   ` |
 
 ---
 
@@ -503,7 +503,7 @@ Randomization: Add ±30% jitter to base intervals to avoid a mechanical feel.
 | ear_wiggle | 1 | `    /~\  /~\    ` |
 | hair_sway | 0 | `    /|\\/|\\    ` |
 | mood:frustrated | 2 | `   < @    @ >   ` |
-| mood:celebrating | 3 | `   (  \\__/  )   ` |
+| mood:celebrating | 3 | `   (  \__/  )   ` |
 
 ---
 
@@ -521,7 +521,7 @@ Randomization: Add ±30% jitter to base intervals to avoid a mechanical feel.
 | Animation | Line | Content |
 |-----------|------|---------|
 | blink | 2 | `   < -    - >   ` |
-| talk | 3 | `   (   \\/  )   ` |
+| talk | 3 | `   (   \/   )   ` |
 | ear_wiggle | 1 | `    /~\  /~\    ` |
 | hair_sway | 0 | `      ;::;      ` |
 | mood:focused | 2 | `   < T    T >   ` |
@@ -635,7 +635,7 @@ Randomization: Add ±30% jitter to base intervals to avoid a mechanical feel.
 | ear_wiggle | 1 | `    /~\  /~\    ` |
 | hair_sway | 0 | `     ^^^^^~     ` |
 | mood:happy | 2 | `   < ^    ^ >   ` |
-| mood:celebrating | 3 | `   (  \\__/  )   ` |
+| mood:celebrating | 3 | `   (  \__/  )   ` |
 
 ---
 
@@ -738,109 +738,121 @@ SBTI Buddy animation is implemented via Claude Code's **statusline + hooks** mec
 }
 ```
 
-### 2. statusline-render.sh
+### 2. Pre-generated Frame Files
 
-Statusline renderer, called continuously by Claude Code statusline system.
-Determines animation mode based on `.animation-state`: **active** (during response generation, frequent animations) or **idle** (when waiting, occasional micro-movements).
+During installation (Step 6a), generate pre-baked frame text files under `~/.claude/sbti-buddy/frames/`. Each file contains the full 6-line ASCII art with the appropriate substitution applied. This eliminates the need for `jq` at runtime and makes the render script fast (~16ms per call).
 
-Two modes differ as follows:
-- **Active**: Each render may trigger an animation — blink, talk, ear wiggle, hair sway, multiple actions alternating
-- **Idle**: Static most of the time, occasionally blinks or twitches ears (roughly every 5-8 seconds), simulating a "living" feel
+**Files to generate:**
+
+| File | Description | How to generate |
+|------|-------------|-----------------|
+| `base.txt` | Base frame, no animation | The 6 base lines as-is |
+| `blink.txt` | Eyes closed | Replace line at `blink.line` with `blink.content` |
+| `talk.txt` | Mouth animated | Replace line at `talk.line` with `talk.content` |
+| `wiggle.txt` | Ears wiggled | Replace line at `wiggle.line` with `wiggle.content` |
+| `sway.txt` | Hair swayed | Replace line at `sway.line` with `sway.content` |
+| `mood_tired.txt` | Tired expression | Replace line at `mood_overrides.tired.line` with its content |
+| `mood_frustrated.txt` | Frustrated expression | Replace line at `mood_overrides.frustrated.line` with its content |
+| `mood_celebrating.txt` | Celebrating expression | Replace line at `mood_overrides.celebrating.line` with its content |
+
+**Generation process**: Start with the 6 base lines. For each variant, copy the base and replace the single line specified by `line` index (0-based) with the variant's `content`. Write each variant as a plain text file with 6 lines.
+
+**⚠ Backslash preservation**: Many avatar lines contain backslashes (`\`). Shell tools like `awk`, `sed`, and `echo` strip or interpret backslashes (e.g., `$\/\/$` becomes `$//$ `). **Always use Python** (or another language that handles raw strings) to generate frame files. Do NOT use shell-based text processing. Example:
+```python
+lines = [...]  # 6 base lines from buddy-frames.json
+lines[variant_line] = variant_content
+with open(f"frames/{name}.txt", "w") as f:
+    f.write("\n".join(lines) + "\n")
+```
+
+### 3. statusline-render.sh
+
+Statusline renderer, called by Claude Code's event-driven statusline system. The command re-evaluates on assistant messages and tool calls — **not** on a periodic timer.
+
+**Key design decisions:**
+- Uses pre-generated frame text files (no `jq` dependency at runtime)
+- Active mode uses a counter file that increments each call, guaranteeing a different frame on every refresh
+- Idle mode uses time-of-day mood with explicit mood file override
 
 ```bash
 #!/bin/bash
 # SBTI Buddy Statusline Renderer
-# Called by Claude Code statusline system
+# Called by Claude Code statusline system (event-driven: refreshes on tool use)
 #
-# Two animation modes:
-#   active (IS_ANIMATING=true)  — frequent animations during response generation
-#   idle   (IS_ANIMATING=false) — occasional micro-movements (blink, ear twitch)
+# Animation modes:
+#   active (IS_ANIMATING=true)  — cycles through blink/talk/wiggle/sway each refresh
+#   idle   (IS_ANIMATING=false) — shows mood-based or time-based static expression
 
-STATE_FILE="$HOME/.claude/sbti-buddy/.animation-state"
-FRAMES_FILE="$HOME/.claude/sbti-buddy/buddy-frames.json"
+BUDDY_DIR="$HOME/.claude/sbti-buddy"
+FRAMES_DIR="$BUDDY_DIR/frames"
 
-if [ ! -f "$FRAMES_FILE" ]; then
+if [ ! -d "$FRAMES_DIR" ] || [ ! -f "$FRAMES_DIR/base.txt" ]; then
   echo ""
   exit 0
 fi
 
-# Read state
-IS_ANIMATING=$(cat "$STATE_FILE" 2>/dev/null || echo "false")
-
-# Read base frame lines from JSON
-BASE_0=$(jq -r '.base[0]' "$FRAMES_FILE")
-BASE_1=$(jq -r '.base[1]' "$FRAMES_FILE")
-BASE_2=$(jq -r '.base[2]' "$FRAMES_FILE")
-BASE_3=$(jq -r '.base[3]' "$FRAMES_FILE")
-BASE_4=$(jq -r '.base[4]' "$FRAMES_FILE")
-BASE_5=$(jq -r '.base[5]' "$FRAMES_FILE")
-
-L0="$BASE_0"; L1="$BASE_1"; L2="$BASE_2"
-L3="$BASE_3"; L4="$BASE_4"; L5="$BASE_5"
-
-NOW=$(date +%s)
+IS_ANIMATING=$(cat "$BUDDY_DIR/.animation-state" 2>/dev/null || echo "false")
 
 if [ "$IS_ANIMATING" = "true" ]; then
-  # === Active mode: frequent animations ===
-  TICK=$(( NOW % 20 ))
+  # === Active mode: cycle through animation frames ===
+  # Use a counter that increments each render for reliable frame cycling
+  COUNT=$(cat "$BUDDY_DIR/.frame-counter" 2>/dev/null || echo "0")
+  COUNT=$(( (COUNT + 1) % 4 ))
+  echo "$COUNT" > "$BUDDY_DIR/.frame-counter"
 
-  if (( TICK % 7 == 0 )); then
-    # Blink
-    L2=$(jq -r '.blink.content' "$FRAMES_FILE")
-  elif (( TICK % 11 == 0 )); then
-    # Talk
-    L3=$(jq -r '.talk.content' "$FRAMES_FILE")
-  elif (( TICK % 13 == 0 )); then
-    # Ear wiggle
-    L1=$(jq -r '.wiggle.content' "$FRAMES_FILE")
-  elif (( TICK % 17 == 0 )); then
-    # Hair sway
-    L0=$(jq -r '.sway.content' "$FRAMES_FILE")
+  case $COUNT in
+    0) FRAME="blink.txt" ;;
+    1) FRAME="talk.txt" ;;
+    2) FRAME="wiggle.txt" ;;
+    3) FRAME="sway.txt" ;;
+  esac
+
+  if [ -f "$FRAMES_DIR/$FRAME" ]; then
+    cat "$FRAMES_DIR/$FRAME"
+  else
+    cat "$FRAMES_DIR/base.txt"
   fi
 else
-  # === Idle mode: occasional micro-movements ===
-  # Blink every ~6 seconds (1 second window out of 6)
-  if (( NOW % 6 == 0 )); then
-    L2=$(jq -r '.blink.content' "$FRAMES_FILE")
-  # Ear twitch every ~15 seconds (1 second window out of 15)
-  elif (( NOW % 15 == 0 )); then
-    L1=$(jq -r '.wiggle.content' "$FRAMES_FILE")
+  # === Idle mode: mood-based expression ===
+  # Check explicit mood file first (set by companion skill on context events)
+  MOOD=$(cat "$BUDDY_DIR/.current-mood" 2>/dev/null || echo "")
+
+  # Fall back to time-of-day mood
+  if [ -z "$MOOD" ] || [ "$MOOD" = "happy" ]; then
+    HOUR=$(date +%H)
+    if [ "$HOUR" -ge 22 ] || [ "$HOUR" -lt 6 ]; then
+      MOOD="tired"
+    elif [ "$HOUR" -ge 12 ] && [ "$HOUR" -lt 18 ]; then
+      MOOD="focused"
+    else
+      MOOD=""
+    fi
+  fi
+
+  # Use mood frame if available, otherwise base
+  if [ -n "$MOOD" ] && [ -f "$FRAMES_DIR/mood_${MOOD}.txt" ]; then
+    cat "$FRAMES_DIR/mood_${MOOD}.txt"
+  else
+    cat "$FRAMES_DIR/base.txt"
   fi
 fi
-
-# Apply mood override (both modes, but skip overriding animated lines)
-MOOD_FILE="$HOME/.claude/sbti-buddy/.current-mood"
-MOOD=$(cat "$MOOD_FILE" 2>/dev/null || echo "happy")
-if [ "$MOOD" != "happy" ]; then
-  OVERRIDE=$(jq -r ".mood_overrides.${MOOD}.content // empty" "$FRAMES_FILE")
-  OVERRIDE_LINE=$(jq -r ".mood_overrides.${MOOD}.line // empty" "$FRAMES_FILE")
-  if [ -n "$OVERRIDE" ] && [ -n "$OVERRIDE_LINE" ]; then
-    case "$OVERRIDE_LINE" in
-      0) L0="$OVERRIDE" ;; 1) L1="$OVERRIDE" ;; 2) L2="$OVERRIDE" ;;
-      3) L3="$OVERRIDE" ;; 4) L4="$OVERRIDE" ;; 5) L5="$OVERRIDE" ;;
-    esac
-  fi
-fi
-
-# Output the buddy frame (6 lines)
-printf '%s\n%s\n%s\n%s\n%s\n%s' "$L0" "$L1" "$L2" "$L3" "$L4" "$L5"
 ```
 
-### 3. hooks/start-animation.sh
+### 4. hooks/start-animation.sh
 
 ```bash
 #!/bin/bash
 echo "true" > "$HOME/.claude/sbti-buddy/.animation-state"
 ```
 
-### 4. hooks/stop-animation.sh
+### 5. hooks/stop-animation.sh
 
 ```bash
 #!/bin/bash
 echo "false" > "$HOME/.claude/sbti-buddy/.animation-state"
 ```
 
-### 5. settings.json Configuration
+### 6. settings.json Configuration
 
 When installing the buddy, add the following to the user's Claude Code settings:
 

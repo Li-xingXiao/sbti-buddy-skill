@@ -91,15 +91,15 @@ Dimension analysis is **language-agnostic** — signals are detected by semantic
 
 **Time analysis**: If timestamps are available, extract hourly distribution for work rhythm and late-night detection.
 
-### Step 3: Compute SBTI type via Manhattan distance
+### Step 3: Compute SBTI type via Euclidean distance
 
 Read the scoring algorithm:
 → `references/scoring-algorithm.md`
 
-1. **Map raw scores to L/M/H**: 0-33 = L(1), 34-66 = M(2), 67-100 = H(3)
-2. **Build 15-dimensional vector** in order: [S1, S2, S3, E1, E2, E3, A1, A2, A3, Ac1, Ac2, Ac3, So1, So2, So3]
-3. **Build pattern string**: e.g. `HHM-HMH-MMH-HHH-MHM`
-4. **Calculate Manhattan distance** against all 25 standard types
+1. **Map raw scores to L/M/H** (for display): 0-33 = L(1), 34-66 = M(2), 67-100 = H(3)
+2. **Build pattern string**: e.g. `HHM-HLH-MLH-HHH-MHM`
+3. **Calculate Euclidean distance** from raw scores (0-100) to each type's centroid (see centroid table in scoring-algorithm.md)
+4. **Compute exact_hits** using L/M/H vectors as tiebreaker
 5. **Sort** by: distance asc → exact_hits desc → similarity desc
 6. **Top match** = primary type; 2nd-5th = spectrum candidates
 7. **HHHH fallback**: If best similarity < 60%, use HHHH
@@ -144,11 +144,21 @@ cat ~/.claude/sbti-buddy/evolution.json 2>/dev/null
 ~/.claude/sbti-buddy/
 ├── profile.json              # Current analysis snapshot
 ├── evolution.json            # Type change history
-├── buddy-frames.json         # Frame data (base + animation variants)
-├── .animation-state          # Runtime state (hooks write to this)
-├── .current-mood             # Current mood state
+├── buddy-frames.json         # Frame data (base + animation variants, JSON)
+├── frames/                   # Pre-generated frame text files (no jq needed at runtime)
+│   ├── base.txt              # Base frame (6 lines)
+│   ├── blink.txt             # Blink variant (eyes closed)
+│   ├── talk.txt              # Talk variant (mouth animated)
+│   ├── wiggle.txt            # Ear wiggle variant
+│   ├── sway.txt              # Hair sway variant
+│   ├── mood_tired.txt        # Tired mood expression
+│   ├── mood_frustrated.txt   # Frustrated mood expression
+│   └── mood_celebrating.txt  # Celebrating mood expression
+├── .animation-state          # Runtime state: "true" or "false" (hooks write)
+├── .current-mood             # Current mood: "happy"/"tired"/"frustrated"/"celebrating"
+├── .frame-counter            # Animation frame counter (0-3, increments each render)
 ├── .last-auto-update         # Timestamp of last auto-update check
-├── statusline-render.sh      # Statusline renderer
+├── statusline-render.sh      # Statusline renderer (reads frames/ dir)
 ├── auto-update-check.sh      # Session start auto-update checker
 └── hooks/
     ├── start-animation.sh    # PreToolUse hook
@@ -157,11 +167,12 @@ cat ~/.claude/sbti-buddy/evolution.json 2>/dev/null
 
 **profile.json** structure: see companion-system.md §6.
 **evolution.json** structure: see companion-system.md §7.
-**buddy-frames.json**: Generated from `ascii-avatars.md`, contains the matched type's 6 base lines + animation variants (blink/talk/ear_wiggle/hair_sway) in JSON format. See companion-skill-template.md §5.
-**statusline-render.sh**: Reads `buddy-frames.json` and `.animation-state` to output the current frame. Two animation modes:
-  - **Active** (during response generation): Frequent animations — blink, talk, ear wiggle, hair sway, multiple actions alternating
-  - **Idle** (waiting for input): Occasional micro-movements — blink every ~6s, ear twitch every ~15s, simulating a "living" buddy
-**hooks/**: `start-animation.sh` writes `true` to `.animation-state` on PreToolUse; `stop-animation.sh` writes `false` on PostToolUse. This controls the animation intensity — matching `/buddy` behavior where the buddy is more active during responses but still alive when idle.
+**buddy-frames.json**: Generated from `ascii-avatars.md`, contains the matched type's 6 base lines + animation variants in JSON format.
+**frames/**: Pre-generated plain text frame files. Each file contains the full 6-line ASCII art with the appropriate line substitution already applied. Generated from `buddy-frames.json` during installation — see `ascii-avatars.md` §2 for the generation process. This eliminates `jq` dependency at runtime (~16ms per render vs ~200ms with jq). **Important**: Use Python (not awk/sed/shell) to generate these files — shell tools strip backslashes from ASCII art.
+**statusline-render.sh**: Event-driven renderer (Claude Code statusline refreshes on tool use, not periodically). See `ascii-avatars.md` §3. Two animation modes:
+  - **Active** (during response generation): Cycles through blink → talk → wiggle → sway using a counter file, guaranteeing a different frame on every statusline refresh
+  - **Idle** (waiting for input): Shows mood-based or time-of-day expression (tired after 22:00, focused 12:00-18:00, base otherwise)
+**hooks/**: `start-animation.sh` writes `true` to `.animation-state` on PreToolUse; `stop-animation.sh` writes `false` on PostToolUse.
 
 #### 6b: Generate and install companion skill
 
@@ -192,6 +203,20 @@ description: "Your SBTI buddy companion: {BUDDY_NAME} ({TYPE_CODE}). Shows buddy
 - After 22:00, append "remember to rest" reminder in buddy's voice
 
 #### 6c: Configure statusline and hooks
+
+**Handle existing `/buddy` statusline**: Before writing the new statusLine config, check if the user already has a `statusLine` entry in `~/.claude/settings.json` (likely from Claude Code's built-in `/buddy` command). If so:
+
+1. **Back up** the existing statusLine config to `~/.claude/sbti-buddy/.prev-statusline.json`:
+   ```bash
+   # Extract and save the current statusLine config (if any)
+   if command -v jq &>/dev/null && [ -f ~/.claude/settings.json ]; then
+     jq '.statusLine // empty' ~/.claude/settings.json > ~/.claude/sbti-buddy/.prev-statusline.json 2>/dev/null
+   fi
+   ```
+2. **Replace** the statusLine with SBTI Buddy's renderer (the `statusLine` field only supports a single command — SBTI Buddy takes over the position previously occupied by `/buddy`)
+3. **Inform the user** in the Step 7 output that SBTI Buddy has replaced their previous `/buddy` avatar
+
+Similarly, check if existing hooks entries conflict (e.g., a previous `/buddy` PreToolUse/PostToolUse hook). SBTI hooks should be **appended** to the hooks arrays, not replace other entries. Only the `statusLine` field is a single-value override.
 
 Add the following to the user's Claude Code settings (`~/.claude/settings.json`):
 
@@ -228,12 +253,14 @@ Add the following to the user's Claude Code settings (`~/.claude/settings.json`)
 }
 ```
 
-**Important**: Merge into existing settings, do not overwrite. If the user already has statusLine or hooks configured, append/merge carefully.
+**Important**: Merge into existing settings, do not overwrite. For hooks, **append** SBTI entries to existing hook arrays (preserve other hooks). For `statusLine`, SBTI Buddy **replaces** the existing value (only one statusLine can be active). The backup in `.prev-statusline.json` allows restoration if SBTI is uninstalled.
 
-Initialize the animation state and auto-update:
+Initialize runtime state files:
 ```bash
+mkdir -p ~/.claude/sbti-buddy/frames
 echo "false" > ~/.claude/sbti-buddy/.animation-state
 echo "happy" > ~/.claude/sbti-buddy/.current-mood
+echo "0" > ~/.claude/sbti-buddy/.frame-counter
 echo "0" > ~/.claude/sbti-buddy/.last-auto-update
 chmod +x ~/.claude/sbti-buddy/statusline-render.sh
 chmod +x ~/.claude/sbti-buddy/auto-update-check.sh
@@ -314,7 +341,8 @@ Output to the user:
 5. **Newly unlocked achievements** (if any, names in user's language)
 6. **Evolution milestone** (if type changed)
 7. Where companion skill was installed
-8. Available commands: `sbti card`, `sbti timeline`, `sbti roast`, `sbti fortune`, `sbti spectrum`
+8. **If replaced `/buddy`**: Notify the user that their previous `/buddy` avatar has been replaced by the SBTI Buddy (e.g., "Your SBTI Buddy has replaced the previous `/buddy` avatar in the statusline. The old config is backed up at `~/.claude/sbti-buddy/.prev-statusline.json`.")
+9. Available commands: `sbti card`, `sbti timeline`, `sbti roast`, `sbti fortune`, `sbti spectrum`
 
 ---
 
@@ -332,14 +360,14 @@ Trigger: "sbti card"
 
 Trigger: "show my buddy" / "buddy"
 
-1. Check `~/.claude/sbti-buddy/buddy-frames.json` exists. If missing, tell user to run analysis first.
+1. Check `~/.claude/sbti-buddy/frames/base.txt` exists. If missing, tell user to run analysis first.
 2. Verify statusline and hooks are configured in the user's Claude Code settings (see Step 6c).
-3. The buddy animates **automatically** via the statusline system:
-   - **Active mode** (during response generation): Frequent animations — blink, talk, wiggle ears, sway hair
-   - **Idle mode** (waiting for input): Occasional micro-movements — blinks every ~6s, ear twitches every ~15s
-4. Print the current static avatar from `buddy-frames.json` base lines.
+3. The buddy animates **automatically** via the event-driven statusline system:
+   - **Active mode** (during response generation): Cycles through blink → talk → wiggle → sway on each tool call, showing a different expression every time Claude uses a tool
+   - **Idle mode** (between responses): Shows mood-based expression — tired face after 22:00, focused during afternoon, base expression otherwise
+4. Print the current static avatar from `frames/base.txt`.
 5. Append buddy greeting in their voice.
-6. Remind user: "Your buddy is alive in the statusline! It blinks and fidgets even when idle, and gets more animated as I respond."
+6. Remind user: "Your buddy lives in the statusline! It changes expressions as I use tools — watch it blink, talk, and wiggle while I respond. Between responses, its mood matches the time of day."
 
 ---
 
@@ -537,7 +565,7 @@ If all conditions are met, it sets a flag file. The skill picks up the flag and 
    ```
    merged[i] = (old[i] * old_count + new[i] * new_count) / (old_count + new_count)
    ```
-8. Re-run Manhattan distance matching.
+8. Re-run Euclidean distance matching against type centroids.
 9. Check for type change, achievements, evolution.
 10. Regenerate companion skill if type changed.
 11. Update profile.json and evolution.json.
@@ -588,10 +616,21 @@ Apply to ALL output files:
 
 ---
 
+## Uninstall / Restore `/buddy`
+
+If the user asks to remove SBTI Buddy or restore their previous `/buddy` avatar:
+
+1. **Restore statusLine**: If `~/.claude/sbti-buddy/.prev-statusline.json` exists and is non-empty, restore its content back to `statusLine` in `~/.claude/settings.json`. If no backup exists, remove the `statusLine` key entirely (user can re-run `/buddy` to set it up again).
+2. **Remove SBTI hooks**: Delete SBTI Buddy's entries from `PreToolUse`, `PostToolUse`, and `SessionStart` hook arrays. Preserve any other hook entries.
+3. **Remove companion skill**: Delete `~/.claude/skills/sbti-buddy-companion/` directory.
+4. **Optionally keep data**: Ask the user if they want to keep `~/.claude/sbti-buddy/` (profile, evolution history). If no, delete the entire directory.
+
+---
+
 ## Reference files
 
 - `references/programmer-dimensions.md` — 15 dimension signal definitions
-- `references/scoring-algorithm.md` — Manhattan distance matching
+- `references/scoring-algorithm.md` — Euclidean distance matching with type centroids
 - `references/companion-system.md` — Buddy personality, mood, evolution, achievements
 - `references/ascii-avatars.md` — ASCII art for all 27 types
 - `references/type-profiles.md` — Programmer-flavored type descriptions
