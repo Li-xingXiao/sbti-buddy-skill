@@ -50,16 +50,6 @@ It generates:
 
 ---
 
-### ⚡ 30-Second Demo
-
-```bash
-# Install (one time)
-cp -R skills/sbti-buddy ~/.claude/skills/sbti-buddy
-
-# Run
-sbti
-```
-
 **Input:** Your `~/.claude/history.jsonl` (read-only, never sent anywhere)
 
 **Output:**
@@ -358,10 +348,11 @@ Signal detection works across **9 languages** — your buddy speaks your languag
 ```
        \----/
       /^\  /^\
-     < V    V >    "Saved. Next."
+     < V    V >    
      (  ----  )
       \ -[]- /
       [ CTRL ]
+    "Saved. Next."
 ```
 
 </div>
