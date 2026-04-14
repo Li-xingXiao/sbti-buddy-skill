@@ -14,7 +14,8 @@ Generates an ASCII buddy that lives in your Claude Code sessions.
 | Trigger | Action |
 |---------|--------|
 | "sbti" / "analyze my sbti" / "what programmer type am I" / "my coding personality" | **Analyze** (full analysis, Steps 0-7) |
-| "sbti card" / "show my buddy" | **Card** (show buddy card) |
+| "sbti card" | **Card** (show buddy card) |
+| "show my buddy" / "buddy" | **Buddy** (animated statusline buddy) |
 | "sbti timeline" | **Timeline** (show type evolution) |
 | "sbti spectrum" | **Spectrum** (show top 5 matching types) |
 | "sbti match" / "sbti compatibility" | **Match** (compare with another user) |
@@ -47,8 +48,6 @@ Read from ALL available sources:
 |--------|------|---------------|
 | Claude Code history | `~/.claude/history.jsonl` | `display` |
 | Claude Code projects | `~/.claude/projects/**/*.jsonl` | `display` |
-| Codex history | `~/.codex/history.jsonl` | `text` |
-| Codex sessions | `~/.codex/sessions/YYYY/MM/DD/rollout-*.jsonl` | `payload.content[].text` (skip `<`-prefixed) |
 
 **Quick mode**: Read the last 50 non-empty messages from the primary source.
 **Full mode**: Read all messages. For files >500 lines, read in batches of 500.
@@ -236,17 +235,18 @@ chmod +x ~/.claude/sbti-buddy/hooks/stop-animation.sh
 Read the card template:
 → `templates/share-card.md`
 
-Generate an ASCII share card and output it directly to the terminal. Fill all placeholders:
-- `ASCII_AVATAR`: 6-line avatar from the matched type
-- `TYPE_CODE`: 4-letter SBTI code
-- `TYPE_CN`: Chinese name (programmer version)
-- `DEV_STYLE_LABEL`: Short dev-style phrase
-- `SIMILARITY`: Match percentage
-- `PATTERN`: DNA bar visualization
-- `DEV_INTRO`: One-line programmer quote
-- Dimension bars: Per-dimension L/M/H visualization
-- `ACHIEVEMENTS_LINE`: Unlocked achievement badges
-- `DATE`: Today's date
+Generate an ASCII share card and output it directly to the terminal. Fill all placeholders per `templates/share-card.md`:
+- `AVATAR_LINE_0` ~ `AVATAR_LINE_5`: 6-line ASCII avatar from the matched type (16 chars each)
+- `TYPE_CODE`: 4-6 letter SBTI code
+- `TYPE_CN`: Chinese label or dev nickname
+- `SIM`: Match similarity percentage (0-100)
+- `STYLE`: Dev style phrase from type profile (max 20 chars)
+- `PATTERN`: DNA bar visualization (10 chars)
+- `DEV_INTRO`: One-line programmer quote (truncate to 36 chars)
+- `S1_BAR` ~ `SO3_BAR`: Per-dimension 2-char bars (`██` / `▓░` / `░░`)
+- `ACHIEVEMENTS_LINE`: Badge chars joined by space (max 38 chars)
+- `CONFIDENCE`: Early Sketch / Clear Portrait / Deep Portrait
+- `DATE`: `YYYY-MM-DD` format
 
 ### Step 7: Present results
 
@@ -266,7 +266,7 @@ Output to the user:
 
 ## Card (show buddy card)
 
-Trigger: "sbti card" / "show my buddy"
+Trigger: "sbti card"
 
 1. Read `~/.claude/sbti-buddy/profile.json`. If missing, tell user to run analysis first.
 2. Read `~/.claude/skills/sbti-buddy-companion/avatar.md` for the avatar.
