@@ -47,6 +47,61 @@ similarity = max(0, round(100 - distance))
 
 > **Why Euclidean on raw scores?** The L/M/H quantization (Step 1) collapses 0-100 scores into only 3 levels, losing critical information. Types like CTRL and GOGO had L/M/H vectors differing by only 2 dimensions (93% similarity), making them nearly indistinguishable. With raw-score centroids, personality-specific positioning within each L/M/H band creates meaningful separation (e.g., CTRL A2=90 vs GOGO A2=15).
 
+## Step 3.5: Perturbation (Jitter + Novelty Penalty)
+
+SBTI is entertainment-first. To keep type switching fluid and fun, apply two perturbation mechanisms before ranking:
+
+### A. Score Jitter
+
+Before computing distance, add Gaussian noise to each raw score:
+
+```
+jittered_score[i] = clamp(raw_score[i] + gaussian(0, σ), 0, 100)
+```
+
+σ scales inversely with confidence (more data → less noise, but never zero):
+
+| Confidence | Messages | σ | Typical effect |
+|---|---|---|---|
+| Early Sketch | 20-50 | 10 | Frequent type changes, exploratory |
+| Clear Portrait | 50-200 | 7 | Occasional switches to nearby types |
+| Deep Portrait | >200 | 5 | Mostly stable, rare drift |
+
+Use `jittered_score` (not `raw_score`) for all distance calculations in Step 3. The original `raw_score` is still saved to `profile.json` — jitter is applied at match time only.
+
+### B. Novelty Penalty (Stability Breaker)
+
+If the user has had the **same type** for consecutive analyses, add a distance penalty to that type to encourage variety:
+
+```
+stability_count = number of consecutive entries in evolution.json with the same type code
+penalty = min(stability_count * 3, 12)
+distance[current_type] += penalty
+```
+
+| Consecutive same type | Penalty | Effect |
+|---|---|---|
+| 1 (first match) | 0 | No penalty |
+| 2 | +3 | Barely noticeable |
+| 3 | +6 | Nearby types become competitive |
+| 4 | +9 | Strong push toward change |
+| 5+ | +12 (cap) | Very likely to switch unless dominant |
+
+Read `evolution.json` to determine `stability_count`. If no history exists (first analysis), `stability_count = 0`.
+
+### Combined effect
+
+- Users near type boundaries switch naturally every 2-3 analyses
+- Users with very distinctive profiles (similarity >90%) stay mostly stable but occasionally explore
+- Each `sbti` run may yield slightly different results — this is intentional
+- The jitter is **not seeded** — running analysis twice in a row may give different types, and that's fine for entertainment
+
+### What gets saved
+
+- `profile.json` stores the **original raw scores** (no jitter) — these represent the user's actual personality signal
+- `evolution.json` records the **matched type after jitter** — this is the "fun" result
+- The jitter values are ephemeral and not saved
+
 ## Step 4: Sort and Select
 
 Sort all 25 standard types by the following priority:

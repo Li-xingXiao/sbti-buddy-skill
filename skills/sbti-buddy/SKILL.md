@@ -98,12 +98,14 @@ Read the scoring algorithm:
 
 1. **Map raw scores to L/M/H** (for display): 0-33 = L(1), 34-66 = M(2), 67-100 = H(3)
 2. **Build pattern string**: e.g. `HHM-HLH-MLH-HHH-MHM`
-3. **Calculate Euclidean distance** from raw scores (0-100) to each type's centroid (see centroid table in scoring-algorithm.md)
-4. **Compute exact_hits** using L/M/H vectors as tiebreaker
-5. **Sort** by: distance asc → exact_hits desc → similarity desc
-6. **Top match** = primary type; 2nd-5th = spectrum candidates
-7. **HHHH fallback**: If best similarity < 60%, use HHHH
-8. **Late Night Coder badge**: If >50% messages sent 00:00-05:00, add badge
+3. **Apply jitter** (Step 3.5A): Add Gaussian noise (σ depends on confidence) to raw scores before matching — keeps type switching fluid and fun. Save **original** raw scores to profile.json, use **jittered** scores only for distance calculation
+4. **Calculate Euclidean distance** from jittered scores to each type's centroid
+5. **Apply novelty penalty** (Step 3.5B): If same type for N consecutive analyses, add penalty to that type's distance to encourage variety
+6. **Compute exact_hits** using L/M/H vectors as tiebreaker
+7. **Sort** by: distance asc → exact_hits desc → similarity desc
+8. **Top match** = primary type; 2nd-5th = spectrum candidates
+9. **HHHH fallback**: If best similarity < 60%, use HHHH
+10. **Late Night Coder badge**: If >50% messages sent 00:00-05:00, add badge
 
 ### Step 4: Generate buddy avatar and personality
 
