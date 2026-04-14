@@ -784,7 +784,7 @@ with open(f"frames/{name}.txt", "w") as f:
 
 ### 3. animate-loop.sh
 
-Background animation daemon. Started by `start-animation.sh` (PreToolUse hook) on first tool call. Self-terminates after 12 hours or if buddy files are removed.
+Background animation daemon. Started by `start-animation.sh` (PreToolUse hook) on first tool call. Self-terminates after 1 hour of no activity (session ended) or if buddy files are removed. Auto-restarts on next tool call.
 
 **Key design decisions:**
 - Pre-renders frames to `.current-render` so the statusline renderer is ultra-fast (`cat` only)
@@ -797,7 +797,8 @@ Background animation daemon. Started by `start-animation.sh` (PreToolUse hook) o
 #!/bin/bash
 # SBTI Buddy Animation Daemon
 # Background process that pre-renders animation frames to .current-render
-# Started by PreToolUse hook, self-terminates after 12h or if buddy files removed
+# Started by PreToolUse hook, self-terminates after 1h of no activity or if buddy files removed
+# Auto-restarts on next tool call via start-animation.sh
 #
 # Active mode (tool call < 5s ago): fast cycling (0.4s/frame)
 # Idle mode (no recent activity):   moderate cycling (1.2s/frame)
@@ -805,8 +806,7 @@ Background animation daemon. Started by `start-animation.sh` (PreToolUse hook) o
 BUDDY_DIR="$HOME/.claude/sbti-buddy"
 FRAMES_DIR="$BUDDY_DIR/frames"
 RENDER_FILE="$BUDDY_DIR/.current-render"
-MAX_RUNTIME=43200  # 12 hours
-START_TIME=$(date +%s)
+IDLE_TIMEOUT=3600  # Exit after 1h of no activity (hooks stop writing timestamps)
 
 # Animation sequences
 ACTIVE_SEQ=("blink" "base" "talk" "base" "wiggle" "base" "sway" "base")
@@ -827,9 +827,10 @@ IDLE_IDX=0
 while true; do
   NOW=$(date +%s)
 
-  # Self-terminate after max runtime
-  if [ $((NOW - START_TIME)) -gt $MAX_RUNTIME ]; then
-    rm -f "$BUDDY_DIR/.animate-pid"
+  # Self-terminate if no activity for 1 hour (session likely ended)
+  STATE_MTIME=$(stat -c %Y "$BUDDY_DIR/.animation-state" 2>/dev/null || echo "0")
+  if [ $((NOW - STATE_MTIME)) -gt $IDLE_TIMEOUT ]; then
+    rm -f "$BUDDY_DIR/.animate-pid" "$RENDER_FILE"
     exit 0
   fi
 
