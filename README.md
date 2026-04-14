@@ -25,11 +25,12 @@ A **Claude Code skill** built on [SBTI-Test](https://sbti.fancc.de5.net/) — a 
 It generates:
 
 - **🎴 Programmer Personality Type** — 27 programmer-specific archetypes across 5 behavioral models and 15 dimensions. Not generic MBTI — types like `CTRL (Ctrl+S the Architect)`, `DEAD (404 the Unmotivated)`, `MONK (Vim僧 the Terminal Sage)`
-- **🐾 Animated ASCII Buddy** — a companion that lives in your Claude Code statusline. It blinks when idle, animates while Claude responds, and changes mood throughout the day
+- **🐾 Animated ASCII Buddy** — a companion that lives in your Claude Code statusline. Powered by a background daemon for smooth, continuous animation — blinks, talks, wiggles ears, and sways even while you're typing
 - **🧠 Companion Skill** — auto-installed skill that gives your buddy a voice. It comments on your code (in character), reminds you to rest after 10pm, and celebrates your achievements
 - **🎙️ Communication Style Adaptation** — Claude adapts how it talks to you based on your personality: verbosity, tone, assertiveness, proactivity, and decision framing. **Only changes communication style — never affects reasoning or technical accuracy**
 - **📈 Evolution Tracking** — your type changes over time. SBTI Buddy records every shift and shows your programmer growth timeline
 - **🏆 15 Achievements** — unlock badges like `🦉 Night Owl`, `💀 Back from Dead`, `🧘 Code Monk`
+- **🖼️ Social Media Share Card** — one command to export a stunning 1200×630px PNG card with your type, stats, evolution timeline, and a fresh AI-generated roast. Ready for Twitter/WeChat/Discord
 
 > **Why no questionnaire?** Personality tests measure how you *think* you are in that moment. But your real coding personality shows in thousands of conversations — how you ask for help, how you respond to errors, how you communicate with AI. That can't be faked. SBTI Buddy reads the truth from your history.
 
@@ -42,11 +43,12 @@ It generates:
 它会生成：
 
 - **🎴 程序员人格类型** — 27 种程序员专属人格原型，覆盖 5 大行为模型、15 个维度。不是泛泛的 MBTI，而是 `CTRL（拿捏者）`、`DEAD（404 开发者）`、`MONK（Vim僧）` 这样的程序员特有类型
-- **🐾 动态 ASCII 伙伴** — 住在你 Claude Code 状态栏里的小伙伴。空闲时偶尔眨眼，响应时活蹦乱跳，全天候陪你 coding
+- **🐾 动态 ASCII 伙伴** — 住在你 Claude Code 状态栏里的小伙伴。后台守护进程驱动，持续流畅动画——眨眼、说话、甩耳朵、摇头，打字时也在动
 - **🧠 伴侣技能** — 自动安装的技能，让你的 buddy 拥有独特的声音。它会用角色语气评论你的代码，晚上 10 点后提醒你休息
 - **🎙️ 沟通风格适配** — Claude 会根据你的性格调整跟你说话的方式：详细程度、语气温度、推荐力度、主动性、决策框架。**只改变沟通风格，不影响推理和技术判断**
 - **📈 进化追踪** — 你的类型会随时间变化。SBTI Buddy 记录每次转变，展示你的程序员成长轨迹
 - **🏆 15 个成就** — 解锁 `🦉 夜猫子`、`💀 起死回生`、`🧘 代码僧侣` 等徽章
+- **🖼️ 社交媒体分享卡** — 一条命令导出精美 1200×630px PNG 卡片，包含你的类型、数据、进化时间线和 AI 现场生成的吐槽。直接发朋友圈/Twitter/Discord
 
 > **为什么不做测试题？** 性格测试只能测出你「此刻觉得自己是什么样的人」。但你真实的编程人格，藏在成千上万次对话里——你怎么求助、怎么应对报错、怎么和 AI 沟通。这些没法伪装。SBTI Buddy 从你的历史中读出真相。
 
@@ -59,6 +61,7 @@ It generates:
 | Output | What you get |
 |--------|-------------|
 | 🎴 ASCII Share Card | Your SBTI type, DNA pattern, dimension bars — paste anywhere |
+| 🖼️ Social Media PNG | 1200×630px dark-themed card with avatar, stats, roast — share on Twitter/WeChat |
 | 🐾 Animated Buddy | ASCII companion that lives in your Claude Code statusline |
 | 🧠 Companion Skill | Auto-installed skill — buddy reacts, comments, tracks your mood |
 | 🎙️ Communication Style | Claude adapts tone, verbosity, assertiveness to your personality (style only, not reasoning) |
@@ -231,10 +234,10 @@ Your buddy lives in the Claude Code statusline — not just a static image.
 
 | Mode | Behavior |
 |------|----------|
-| **Active** (Claude responding) | Cycles through blink → talk → ear wiggle → hair sway on each tool call |
-| **Idle** (between responses) | Shows mood-based expression matching time of day |
+| **Active** (Claude responding) | Fast cycling (0.4s/frame): blink → talk → ear wiggle → hair sway |
+| **Idle** (between responses) | Moderate cycling (1.2s/frame) with mood-based expressions matching time of day |
 
-Powered by `PreToolUse`/`PostToolUse` hooks + event-driven statusline renderer.
+Powered by a background animation daemon. `PreToolUse`/`PostToolUse` hooks trigger active mode; the daemon auto-starts on first tool call and self-terminates after 1 hour of inactivity.
 
 ### 😊 Mood System
 
@@ -293,6 +296,7 @@ Your type isn't static — it evolves as you grow. Every analysis is recorded. R
 | `sbti match <path>` | Compare by importing the other person's `profile.json` |
 | `sbti roast` | Your buddy roasts your coding style |
 | `sbti fortune` | Daily coding fortune based on your type |
+| `sbti share` | Export a 1200×630px PNG share card (HTML → Chrome headless → PNG) |
 | `update my sbti` | Manual incremental update (new messages only, fast) |
 | *(auto)* | Auto-updates on session start if 50+ new messages & 24h since last check |
 
@@ -342,6 +346,8 @@ Signal detection works across **9 languages** — your buddy speaks your languag
 - [x] Incremental update (new messages only)
 - [x] Auto-update on session start (50+ new msgs, 24h cooldown)
 - [x] Communication style adaptation (style only, not reasoning)
+- [x] Background animation daemon (continuous smooth animation)
+- [x] Social media share card PNG (`sbti share`)
 
 
 ---
