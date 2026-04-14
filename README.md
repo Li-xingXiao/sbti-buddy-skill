@@ -103,28 +103,22 @@ It generates:
 
 <br>
 
-```
-  CTRL            BOSS            DEAD            MONK            SEXY
-  The Architect   The Tech Lead   The 404 Dev     Terminal Sage   The Lambda
-
-   \----/          $\/\/$          ______           ....           ~~**~~
-  /^\  /^\        /^\  /^\        /-\  /-\        /-\  /-\        /^\  /^\
- < V    V >      < $    $ >      < X    X >      < -    - >      < *    - >
- (  ----  )      (  ====  )      (  ____  )      (   __   )      (   33   )
-  \ -[]- /        \ -MM- /        \ -==- /        \ -OO- /        \ -SS- /
-  [ CTRL ]        [ BOSS ]        [ DEAD ]        [ MONK ]        [ SEXY ]
-
-
-  SHIT            MUM             MALO            JOKE-R          HHHH
-  Angry Shipper   Error Handler   Chaos Monkey    Debug Comedian  Happy Coder
-
-    ~~~~            ////            (--)            *||*           ^^^^^^
-  /-\  /-\        /^\  /^\        /^\  /^\        /^\  /^\        /^\  /^\
- < x    x >      < -    - >      < @    @ >      < *    * >      < ^    ^ >
- (   ~~   )      (   __   )      (   ww   )      (  \__/  )      (  \__/  )
-  \ -ss- /        \  oo  /        \ -cc- /        \ -WW- /        \ -UU- /
-  [ SHIT ]        [ MUM  ]        [ MALO ]       [ JOKE-R ]       [ HHHH ]
-```
+<table>
+<tr>
+<td align="center"><img src="assets/gifs/CTRL.gif" width="120"><br><b>CTRL</b><br><sub>The Architect</sub></td>
+<td align="center"><img src="assets/gifs/BOSS.gif" width="120"><br><b>BOSS</b><br><sub>The Tech Lead</sub></td>
+<td align="center"><img src="assets/gifs/DEAD.gif" width="120"><br><b>DEAD</b><br><sub>The 404 Dev</sub></td>
+<td align="center"><img src="assets/gifs/MONK.gif" width="120"><br><b>MONK</b><br><sub>Terminal Sage</sub></td>
+<td align="center"><img src="assets/gifs/SEXY.gif" width="120"><br><b>SEXY</b><br><sub>The Lambda</sub></td>
+</tr>
+<tr>
+<td align="center"><img src="assets/gifs/SHIT.gif" width="120"><br><b>SHIT</b><br><sub>Angry Shipper</sub></td>
+<td align="center"><img src="assets/gifs/MUM.gif" width="120"><br><b>MUM</b><br><sub>Error Handler</sub></td>
+<td align="center"><img src="assets/gifs/MALO.gif" width="120"><br><b>MALO</b><br><sub>Chaos Monkey</sub></td>
+<td align="center"><img src="assets/gifs/JOKE-R.gif" width="120"><br><b>JOKE-R</b><br><sub>Debug Comedian</sub></td>
+<td align="center"><img src="assets/gifs/HHHH.gif" width="120"><br><b>HHHH</b><br><sub>Happy Coder</sub></td>
+</tr>
+</table>
 
 *10 of 27 types shown. The rest? Discover yours by running `sbti`.*
 
@@ -177,7 +171,7 @@ sbti
           └─────────────┬──────────────┘
                         │
           ┌─────────────▼──────────────┐
-          │  Manhattan distance match   │
+          │  Euclidean distance match   │
           │  → Best of 27 types         │
           └─────────────┬──────────────┘
                         │
@@ -234,10 +228,10 @@ Your buddy lives in the Claude Code statusline — not just a static image.
 
 | Mode | Behavior |
 |------|----------|
-| **Active** (Claude responding) | Frequent blink, talk, ear wiggle, hair sway |
-| **Idle** (waiting for input) | Occasional blink (~6s), ear twitch (~15s) |
+| **Active** (Claude responding) | Cycles through blink → talk → ear wiggle → hair sway on each tool call |
+| **Idle** (between responses) | Shows mood-based expression matching time of day |
 
-Powered by `PreToolUse`/`PostToolUse` hooks + statusline renderer — the same architecture as `/buddy`.
+Powered by `PreToolUse`/`PostToolUse` hooks + event-driven statusline renderer.
 
 ### 😊 Mood System
 
@@ -318,7 +312,7 @@ Signal detection works across **9 languages** — your buddy speaks your languag
 
 - [x] 27 programmer archetypes with ASCII avatars
 - [x] 5-model, 15-dimension behavioral analysis
-- [x] Manhattan distance type matching
+- [x] Euclidean distance type matching (raw score centroids)
 - [x] Animated statusline buddy (active + idle modes)
 - [x] Companion skill auto-installation
 - [x] Mood system with time-based expressions
