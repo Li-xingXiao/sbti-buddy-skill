@@ -1,6 +1,6 @@
 # ASCII Avatars & Animation System
 
-26 SBTI type ASCII avatars, strictly following a **16-char wide × 6-line tall** pure ASCII symmetrical matrix design.
+27 SBTI type ASCII avatars, strictly following a **16-char wide × 6-line tall** pure ASCII symmetrical matrix design.
 Each avatar includes a base frame and animation variants, enabling natural animation effects similar to `/buddy`.
 
 ---
@@ -52,7 +52,7 @@ Randomization: Add ±30% jitter to base intervals to avoid a mechanical feel.
 
 ---
 
-## All 26 Type Avatars
+## All 27 Type Avatars
 
 ### Per-Avatar Format
 
@@ -595,6 +595,28 @@ Randomization: Add ±30% jitter to base intervals to avoid a mechanical feel.
 
 ---
 
+### DIOR-S
+
+```
+      ;;;;      
+    /-\  /-\    
+   < q    p >   
+   (  ....  )   
+    \ -db- /    
+   [ DIOR-S ]   
+```
+
+| Animation | Line | Content |
+|-----------|------|---------|
+| blink | 2 | `   < -    - >   ` |
+| talk | 3 | `   (  .--.  )   ` |
+| ear_wiggle | 1 | `    /~\  /~\    ` |
+| hair_sway | 0 | `      ;:;:      ` |
+| mood:focused | 2 | `   < q    p >   ` |
+| mood:celebrating | 3 | `   (  \__/  )   ` |
+
+---
+
 ### HHHH (Special: Fallback)
 
 ```
@@ -648,9 +670,8 @@ Mapping between sbti.json key names and original SBTI type codes:
 | `OJBk` | `OG8K` | ASCII-safe rename |
 | `FUCK` | `FU?K` | Original uses question mark |
 | `DRUN-K` | `DRUNK` | Late Night Coder easter egg |
-| All other 24 | Same name | No change |
-
-Note: `Dior-s` from the original 27 types is not included in this avatar set (26 avatars total).
+| `DIOR-S` | `DIOR-s` | Case normalization |
+| All other 23 | Same name | No change |
 
 ---
 

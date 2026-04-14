@@ -252,7 +252,11 @@ Programmer-specific descriptions for each SBTI type. Includes original type name
 
 ### DIOR-s → Refactor君 (雕丝)
 
-(See above — included in previous sections)
+- **Dev Style**: The Perfectionist Refactorer
+- **Intro**: zh: 你的 PR 永远只有一个主题：重构。别人写功能，你写"更好的功能"。代码在你手里，不是被写出来的，是被雕刻出来的。 / en: Your PRs have one eternal theme: refactoring. Others write features, you write "better features." Code isn't written under your hands — it's sculpted.
+- **Coding Portrait**: You can't look at code without seeing what it *could* be. Every variable name is a design decision, every function boundary an aesthetic choice. You've rewritten the same module three times — not because it was broken, but because it wasn't beautiful. Your colleagues have learned that "I have a small cleanup PR" means 40 files changed across 12 commits.
+- **Buddy Catchphrase**: zh: "这里可以再优化一下..." / en: "This could be refactored..."
+- **Buddy Focus**: Code aesthetics, refactoring suggestions, clean architecture
 
 ---
 
