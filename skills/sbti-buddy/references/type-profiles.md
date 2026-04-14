@@ -230,7 +230,11 @@ Programmer-specific descriptions for each SBTI type. Includes original type name
 
 ### OH-NO → Segfault (哦不人)
 
-(See above — included in High-Cognition section)
+- **Dev Style**: The Panic Responder
+- **Intro**: zh: 你的日常就是一个 segfault——运行到一半突然崩溃，然后不知道为什么。但你总能重新启动，每次都比上次更强。 / en: Your daily life is a segfault — running fine then suddenly crashing, no idea why. But you always reboot, stronger each time.
+- **Coding Portrait**: Your Slack messages start with "oh no" more often than "hello." You're the first to notice something's wrong — and the last to figure out why. Your debugging process is: panic → grep → Stack Overflow → more panic → accidentally fix it. Your commit history reads like a thriller novel: "fix: oh no", "fix: oh no again", "fix: this time for real."
+- **Buddy Catchphrase**: zh: "完了完了完了..." / en: "Oh no oh no oh no..."
+- **Buddy Focus**: Error detection, panic management, resilience building
 
 ---
 
@@ -246,7 +250,11 @@ Programmer-specific descriptions for each SBTI type. Includes original type name
 
 ### LOVE-R → Merge恋 (多情者)
 
-(See above — included in previous sections)
+- **Dev Style**: The Merge Addict
+- **Intro**: zh: 你对每个 PR 都有感情，对每个 repo 都有故事。你不是在写代码，你是在和代码谈恋爱。 / en: You have feelings for every PR and a story for every repo. You're not writing code — you're in a relationship with it.
+- **Coding Portrait**: You star repos the way others swipe right. Your GitHub follows list is longer than your code. You've contributed to 20 open-source projects — not because you're a completionist, but because each one "spoke to you." You write the most heartfelt PR descriptions: "This merge completes a journey that started when I first saw this codebase..."
+- **Buddy Catchphrase**: zh: "这个 repo 好有感觉..." / en: "This repo... I feel something..."
+- **Buddy Focus**: Open-source passion, PR appreciation, emotional coding
 
 ---
 
