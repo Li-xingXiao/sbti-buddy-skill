@@ -27,6 +27,7 @@ It generates:
 - **🎴 Programmer Personality Type** — 27 programmer-specific archetypes across 5 behavioral models and 15 dimensions. Not generic MBTI — types like `CTRL (Ctrl+S the Architect)`, `DEAD (404 the Unmotivated)`, `MONK (Vim僧 the Terminal Sage)`
 - **🐾 Animated ASCII Buddy** — a companion that lives in your Claude Code statusline. It blinks when idle, animates while Claude responds, and changes mood throughout the day
 - **🧠 Companion Skill** — auto-installed skill that gives your buddy a voice. It comments on your code (in character), reminds you to rest after 10pm, and celebrates your achievements
+- **🎙️ Communication Style Adaptation** — Claude adapts how it talks to you based on your personality: verbosity, tone, assertiveness, proactivity, and decision framing. **Only changes communication style — never affects reasoning or technical accuracy**
 - **📈 Evolution Tracking** — your type changes over time. SBTI Buddy records every shift and shows your programmer growth timeline
 - **🏆 15 Achievements** — unlock badges like `🦉 Night Owl`, `💀 Back from Dead`, `🧘 Code Monk`
 
@@ -43,6 +44,7 @@ It generates:
 - **🎴 程序员人格类型** — 27 种程序员专属人格原型，覆盖 5 大行为模型、15 个维度。不是泛泛的 MBTI，而是 `CTRL（拿捏者）`、`DEAD（404 开发者）`、`MONK（Vim僧）` 这样的程序员特有类型
 - **🐾 动态 ASCII 伙伴** — 住在你 Claude Code 状态栏里的小伙伴。空闲时偶尔眨眼，响应时活蹦乱跳，全天候陪你 coding
 - **🧠 伴侣技能** — 自动安装的技能，让你的 buddy 拥有独特的声音。它会用角色语气评论你的代码，晚上 10 点后提醒你休息
+- **🎙️ 沟通风格适配** — Claude 会根据你的性格调整跟你说话的方式：详细程度、语气温度、推荐力度、主动性、决策框架。**只改变沟通风格，不影响推理和技术判断**
 - **📈 进化追踪** — 你的类型会随时间变化。SBTI Buddy 记录每次转变，展示你的程序员成长轨迹
 - **🏆 15 个成就** — 解锁 `🦉 夜猫子`、`💀 起死回生`、`🧘 代码僧侣` 等徽章
 
@@ -59,6 +61,7 @@ It generates:
 | 🎴 ASCII Share Card | Your SBTI type, DNA pattern, dimension bars — paste anywhere |
 | 🐾 Animated Buddy | ASCII companion that lives in your Claude Code statusline |
 | 🧠 Companion Skill | Auto-installed skill — buddy reacts, comments, tracks your mood |
+| 🎙️ Communication Style | Claude adapts tone, verbosity, assertiveness to your personality (style only, not reasoning) |
 | 📈 Evolution Log | Type change history — watch yourself grow over time |
 
 <details>
@@ -242,6 +245,22 @@ Powered by `PreToolUse`/`PostToolUse` hooks + event-driven statusline renderer.
 | 18:00–22:00 | Winding down | `◉◡◉` |
 | 22:00–06:00 | Night owl | `◉ᵕ◉` + rest reminder |
 
+### 🎙️ Communication Style Adaptation
+
+After analysis, Claude adapts **how it communicates** based on 5 personality dimensions:
+
+| Attribute | Driven by | Example |
+|-----------|-----------|---------|
+| **Verbosity** | E2 (Conversation Depth) | H → detailed step-by-step · L → concise one-liners |
+| **Tone** | So3 (Expression Style) | H → warm, encouraging · L → dry, matter-of-fact |
+| **Assertiveness** | S1 (Code Confidence) | H → "use X" · L → "you could try X or Y" |
+| **Proactivity** | So1 (Initiative) | H → offers related context · L → answers exactly what's asked |
+| **Decision Framing** | Ac2 (Decision Speed) | H → picks best option · L → compares alternatives |
+
+> **Important:** This only changes how Claude *talks* to you — tone, detail level, directness. It **never** affects reasoning, technical accuracy, or decision-making quality. Think of it as adjusting the communication channel, not the brain.
+>
+> **重要说明：** 这只会改变 Claude *跟你说话的方式*——语气、详细程度、直接程度。**不会**影响推理能力、技术准确性或决策质量。可以理解为调整了沟通频道，而不是大脑。
+
 ### 📈 Evolution
 
 Your type isn't static — it evolves as you grow. Every analysis is recorded. Run `sbti timeline` to see your journey:
@@ -322,6 +341,7 @@ Signal detection works across **9 languages** — your buddy speaks your languag
 - [x] ASCII share card generation
 - [x] Incremental update (new messages only)
 - [x] Auto-update on session start (50+ new msgs, 24h cooldown)
+- [x] Communication style adaptation (style only, not reasoning)
 
 
 ---

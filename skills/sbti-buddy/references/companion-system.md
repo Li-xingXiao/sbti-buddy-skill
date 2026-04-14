@@ -57,6 +57,26 @@ For other languages (es/fr/de/pt/ru), the analysis engine auto-generates voice d
 | Ac-Low + A-Low | Slacker Buddy | Laid-back, casual, occasional snarky comments |
 | S-High + So-High | Chatty Expert | Confident and loves to share, output explosion |
 
+### 1.4 Communication Style Adaptation
+
+Beyond the buddy's own voice (§1.2), the companion skill also adapts **Claude's overall communication style** to match the user's personality. This affects ALL responses — not just buddy comments.
+
+Five dimensions drive the adaptation:
+
+| Attribute | Dimension | H (67-100) | M (34-66) | L (0-33) |
+|-----------|-----------|-----------|-----------|----------|
+| **Verbosity** | E2 (Conversation Depth) | Detailed explanations with reasoning and steps | Explains key points, skips obvious parts | Concise answers, assumes user fills in details |
+| **Tone** | So3 (Expression Style) | Encouraging, acknowledges effort, warm | Neutral professional | Dry, matter-of-fact, minimal emotional words |
+| **Assertiveness** | S1 (Code Confidence) | Assertive: "use X", "you should Y" | Balanced: "I'd suggest X", "consider Y" | Tentative, options-focused: "you could try X or Y" |
+| **Proactivity** | So1 (Initiative) | Proactively offers context, alternatives, related info | Answers the question, mentions relevant extras briefly | Only answers exactly what was asked |
+| **Decision Framing** | Ac2 (Decision Speed) | Quick decisive: pick one approach, move on | Present top option with brief alternatives | Thorough comparison of options before recommending |
+
+**Rules:**
+- These are **soft guidelines** — technical accuracy always takes priority
+- When the user is frustrated or in a hurry, default to concise + direct regardless of profile
+- Use raw scores (0-100) for granularity, not just L/M/H bands — So3=85 is warmer than So3=70
+- The generated `communication-style.md` file contains per-attribute instructions in the user's `lang`
+
 ---
 
 ## 2. Mood System
@@ -174,8 +194,10 @@ Generated to `~/.claude/skills/sbti-buddy-companion/SKILL.md`:
 - **Frontmatter**: `name: "sbti-buddy-companion"`, description mentions type and buddy name
 - **Triggers**: `"show my buddy"`, `"buddy"`, `"sbti card"`, `"sbti timeline"`
 - **Personality section**: Tone (TONE), catchphrase (CATCHPHRASE), focus areas (FOCUS) — all derived from type
+- **Communication adaptation**: `communication-style.md` rules apply to ALL Claude responses — adapts verbosity, tone, assertiveness, proactivity, decision framing (see §1.4)
 - **Behavior rules**: Occasionally append a 1-line buddy-style comment at the end of responses during daily coding (max 1 line), never affect technical accuracy
-- **Referenced files**: `personality.md` (personality), `avatar.md` (avatar + expression variants), `achievements.md` (achievements)
+- **`/buddy` coexistence**: Built-in `/buddy` (input box) and SBTI Buddy (statusline) occupy different UI areas and coexist. SBTI companion takes priority for communication style adaptation.
+- **Referenced files**: `personality.md` (buddy voice), `communication-style.md` (Claude's style), `avatar.md` (avatar + expression variants), `achievements.md` (achievements)
 - **Display modes**:
   - `sbti card` — avatar + type + core dimensions + achievement badges
   - `sbti timeline` — type change history from evolution.json

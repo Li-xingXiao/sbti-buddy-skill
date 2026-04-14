@@ -185,6 +185,7 @@ Generate files at `~/.claude/skills/sbti-buddy-companion/`:
 sbti-buddy-companion/
 ├── SKILL.md              # Companion skill entry point
 ├── personality.md        # Buddy voice, tone, catchphrase, focus
+├── communication-style.md # Claude's communication style adaptation
 ├── avatar.md             # ASCII avatar + mood variants
 └── achievements.md       # Unlocked achievements list
 ```
@@ -192,10 +193,13 @@ sbti-buddy-companion/
 **SKILL.md** frontmatter:
 ```yaml
 name: "sbti-buddy-companion"
-description: "Your SBTI buddy companion: {BUDDY_NAME} ({TYPE_CODE}). Shows buddy reactions, mood, and achievements. Triggers on: 'show my buddy', 'buddy', 'sbti card', 'sbti timeline'."
+description: "Your SBTI buddy companion: {BUDDY_NAME} ({TYPE_CODE}). Adapts communication style and adds buddy personality. Triggers on: 'show my buddy', 'buddy', 'sbti card', 'sbti timeline'."
 ```
 
+**communication-style.md**: Generated from SBTI dimension scores. Adapts Claude's overall communication style (verbosity, tone, assertiveness, proactivity, decision framing) to match the user's personality. See `companion-skill-template.md` §5 for the template and filling rules, and `companion-system.md` §1.4 for the dimension mapping.
+
 **Companion behavior rules** (written into the skill):
+- `communication-style.md` rules apply to ALL Claude responses (not just buddy comments)
 - In daily coding sessions, the companion MAY append a 1-line buddy comment at the end of responses (max 1 per 3 interactions, do NOT affect technical accuracy)
 - Comment style matches the buddy's voice (see personality.md)
 - Show mood-appropriate expression (see avatar.md)
@@ -204,19 +208,24 @@ description: "Your SBTI buddy companion: {BUDDY_NAME} ({TYPE_CODE}). Shows buddy
 
 #### 6c: Configure statusline and hooks
 
-**Handle existing `/buddy` statusline**: Before writing the new statusLine config, check if the user already has a `statusLine` entry in `~/.claude/settings.json` (likely from Claude Code's built-in `/buddy` command). If so:
+**Coexistence with `/buddy`**: The built-in `/buddy` companion (input box area) and SBTI Buddy (statusline) are **two separate UI systems** that coexist peacefully — no need to disable either one.
 
-1. **Back up** the existing statusLine config to `~/.claude/sbti-buddy/.prev-statusline.json`:
-   ```bash
-   # Extract and save the current statusLine config (if any)
-   if command -v jq &>/dev/null && [ -f ~/.claude/settings.json ]; then
-     jq '.statusLine // empty' ~/.claude/settings.json > ~/.claude/sbti-buddy/.prev-statusline.json 2>/dev/null
-   fi
-   ```
-2. **Replace** the statusLine with SBTI Buddy's renderer (the `statusLine` field only supports a single command — SBTI Buddy takes over the position previously occupied by `/buddy`)
-3. **Inform the user** in the Step 7 output that SBTI Buddy has replaced their previous `/buddy` avatar
+| | `/buddy` (built-in) | SBTI Buddy |
+|---|---|---|
+| Location | Beside input box + speech bubbles | Bottom statusline |
+| Config | Runtime session state | `statusLine` in settings.json |
+| Personality | Built-in companion | SBTI companion skill |
 
-Similarly, check if existing hooks entries conflict (e.g., a previous `/buddy` PreToolUse/PostToolUse hook). SBTI hooks should be **appended** to the hooks arrays, not replace other entries. Only the `statusLine` field is a single-value override.
+**No conflict**: They occupy different UI areas. Users can have both active simultaneously.
+
+**Before writing statusLine config**, back up any existing entry:
+```bash
+if command -v jq &>/dev/null && [ -f ~/.claude/settings.json ]; then
+  jq '.statusLine // empty' ~/.claude/settings.json > ~/.claude/sbti-buddy/.prev-statusline.json 2>/dev/null
+fi
+```
+
+For hooks, **append** SBTI entries to existing hook arrays (preserve other hooks). For `statusLine`, SBTI Buddy **replaces** the existing value (only one statusLine can be active). The backup in `.prev-statusline.json` allows restoration if SBTI is uninstalled.
 
 Add the following to the user's Claude Code settings (`~/.claude/settings.json`):
 
@@ -341,7 +350,7 @@ Output to the user:
 5. **Newly unlocked achievements** (if any, names in user's language)
 6. **Evolution milestone** (if type changed)
 7. Where companion skill was installed
-8. **If replaced `/buddy`**: Notify the user that their previous `/buddy` avatar has been replaced by the SBTI Buddy (e.g., "Your SBTI Buddy has replaced the previous `/buddy` avatar in the statusline. The old config is backed up at `~/.claude/sbti-buddy/.prev-statusline.json`.")
+8. **Buddy location**: Mention that the SBTI buddy lives in the bottom statusline, and coexists with the built-in `/buddy` if active.
 9. Available commands: `sbti card`, `sbti timeline`, `sbti roast`, `sbti fortune`, `sbti spectrum`
 
 ---
