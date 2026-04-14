@@ -1,0 +1,21 @@
+{
+  "name": "sbti-buddy",
+  "owner": {
+    "name": "xiaolixing"
+  },
+  "metadata": {
+    "description": "Programmer SBTI personality analyzer & ASCII buddy companion. No questionnaire needed — analyzes your conversation history to reveal your coding personality among 27 archetypes.",
+    "version": "1.0.0"
+  },
+  "plugins": [
+    {
+      "name": "sbti-buddy",
+      "description": "Analyze AI conversation history and generate a programmer SBTI personality type with ASCII buddy avatar, achievement system, evolution tracking, compatibility matching, daily fortunes, and roast mode.",
+      "source": "./",
+      "strict": true,
+      "skills": [
+        "./skills/sbti-buddy"
+      ]
+    }
+  ]
+}
