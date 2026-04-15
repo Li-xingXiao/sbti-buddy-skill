@@ -18,6 +18,8 @@ Each avatar includes a base frame and animation variants, enabling natural anima
 
 **Constraints**: Each line is exactly 16 characters (including leading/trailing spaces), pure ASCII, no Unicode/emoji.
 
+> **⚠ Trailing space warning**: Markdown rendering strips trailing whitespace from code blocks. When generating frame files, always pad each line to exactly 16 characters using the avatar's structural pattern, rather than copying raw text from this markdown file. The Python generation approach (see §2 below) handles this correctly.
+
 ---
 
 ## Animation System
@@ -749,6 +751,7 @@ SBTI Buddy animation is implemented via a **background daemon + statusline + hoo
   "sway":  { "line": 0, "content": "{{SWAY_LINE_0}}" },
   "mood_overrides": {
     "tired":       { "line": 2, "content": "{{MOOD_TIRED_LINE_2}}" },
+    "focused":     { "line": 2, "content": "{{MOOD_FOCUSED_LINE_2}}" },
     "frustrated":  { "line": 2, "content": "{{MOOD_FRUSTRATED_LINE_2}}" },
     "celebrating": { "line": 3, "content": "{{MOOD_CELEBRATING_LINE_3}}" }
   }
@@ -769,6 +772,7 @@ During installation (Step 6a), generate pre-baked frame text files under `~/.cla
 | `wiggle.txt` | Ears wiggled | Replace line at `wiggle.line` with `wiggle.content` |
 | `sway.txt` | Hair swayed | Replace line at `sway.line` with `sway.content` |
 | `mood_tired.txt` | Tired expression | Replace line at `mood_overrides.tired.line` with its content |
+| `mood_focused.txt` | Focused expression | Replace line at `mood_overrides.focused.line` with its content |
 | `mood_frustrated.txt` | Frustrated expression | Replace line at `mood_overrides.frustrated.line` with its content |
 | `mood_celebrating.txt` | Celebrating expression | Replace line at `mood_overrides.celebrating.line` with its content |
 

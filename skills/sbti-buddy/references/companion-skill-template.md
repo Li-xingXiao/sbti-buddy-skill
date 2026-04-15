@@ -238,7 +238,7 @@ Buddy speaks in `{LANG}` by default, follows user's language if they switch.
 | Placeholder | Source | Multilingual Handling |
 |-------------|--------|----------------------|
 | `BUDDY_NAME` | companion-system.md §1.1 mapping | Not translated, keep original name |
-| `TYPE_CODE` | Manhattan distance match result | Not translated |
+| `TYPE_CODE` | Euclidean distance match result | Not translated |
 | `TYPE_CN` | cn field from types.json | Not translated |
 | `TYPE_CN_DEV` | Programmer nickname from type-profiles.md | Not translated, programmer memes are universal |
 | `DEV_STYLE` | Dev Style from type-profiles.md | Not translated (English label) |

@@ -1,6 +1,6 @@
 # SBTI Scoring Algorithm
 
-Reuses the original SBTI Manhattan distance matching algorithm, adapted for continuous score inputs from conversation analysis.
+Reuses the original SBTI distance matching algorithm, adapted to Euclidean distance on continuous score inputs from conversation analysis.
 
 ---
 

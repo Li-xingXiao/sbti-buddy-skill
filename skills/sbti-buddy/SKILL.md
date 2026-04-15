@@ -119,7 +119,7 @@ Read the type profiles:
 Read the companion system:
 → `references/companion-system.md`
 
-1. **Select ASCII avatar** for the matched type
+1. **Select ASCII avatar** for the matched type (note: avatar name tags differ from canonical type codes — see the "Avatar Tag ↔ Canonical Code Mapping" table in ascii-avatars.md for translations like `OJBk`→`OG8K`, `FUCK`→`FU?K`, `DRUN-K`→`DRUNK`, `DIOR-S`→`Dior-s`)
 2. **Apply current mood expression** based on time of day (see companion-system.md §2)
 3. **Derive voice/tone** from dimension scores (see companion-system.md §1.2, §1.3)
 4. **Generate buddy catchphrase** — a short, type-specific one-liner the buddy uses

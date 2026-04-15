@@ -155,7 +155,7 @@ Compare `current type.code` with the `type` of the last entry in `evolution.hist
 | `first_analysis` | First Analysis | Complete first SBTI analysis | 🎯 |
 | `type_shift` | Type Shift | Type differs from previous analysis | 🔄 |
 | `stable_core` | Stable Core | Same type for 3+ consecutive analyses | 🪨 |
-| `night_owl` | Night Owl | >30% messages sent between 22:00-04:00 | 🦉 |
+| `night_owl` | Night Owl | >50% messages sent between 00:00-05:00 | 🦉 |
 | `polyglot_coder` | Polyglot Coder | Messages use 2+ languages | 🌐 |
 | `deep_diver` | Deep Diver | 500+ messages analyzed cumulatively | 🤿 |
 | `full_spectrum` | Full Spectrum | At least one L, M, and H across 15 dimensions | 🌈 |

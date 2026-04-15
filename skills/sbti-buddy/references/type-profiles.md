@@ -80,6 +80,16 @@ Programmer-specific descriptions for each SBTI type. Includes original type name
 
 ---
 
+### POOR → malloc失败 (贫困者)
+
+- **Dev Style**: The Deep Specialist
+- **Intro**: zh: 你把所有 memory 都 allocate 给了一个 passion project，其他的全是 segfault。 / en: You allocated all your memory to one passion project. Everything else is a segfault.
+- **Coding Portrait**: You're an expert in exactly one domain, but in that domain you're a god. Your GitHub has one repo, but it has 5000 stars. You don't learn new frameworks, don't write new languages — because you haven't perfected the one in your hands yet. Others call you a T-shaped developer. You say no, you're I-shaped, and that I goes straight to the earth's core.
+- **Buddy Catchphrase**: zh: "这个不在我的范围..." / en: "That's outside my scope..."
+- **Buddy Focus**: Deep focus, depth over breadth, no distractions
+
+---
+
 ## Warm Healing Types
 
 ### MUM → Try-Catch (妈妈)
@@ -109,6 +119,16 @@ Programmer-specific descriptions for each SBTI type. Includes original type name
 - **Coding Portrait**: You write code like poetry — every line has rhythm. Your functions are pure, your architecture is functional, your PRs get starred. You don't care about coverage percentages; you care about code aesthetics. Others debug; you refine.
 - **Buddy Catchphrase**: zh: "优雅，非常优雅。" / en: "Elegant. Very elegant."
 - **Buddy Focus**: Code aesthetics, brevity, elegant solutions
+
+---
+
+### LOVE-R → Merge恋 (多情者)
+
+- **Dev Style**: The Merge Addict
+- **Intro**: zh: 你对每个 PR 都有感情，对每个 repo 都有故事。你不是在写代码，你是在和代码谈恋爱。 / en: You have feelings for every PR and a story for every repo. You're not writing code — you're in a relationship with it.
+- **Coding Portrait**: You star repos the way others swipe right. Your GitHub follows list is longer than your code. You've contributed to 20 open-source projects — not because you're a completionist, but because each one "spoke to you." You write the most heartfelt PR descriptions: "This merge completes a journey that started when I first saw this codebase..."
+- **Buddy Catchphrase**: zh: "这个 repo 好有感觉..." / en: "This repo... I feel something..."
+- **Buddy Focus**: Open-source passion, PR appreciation, emotional coding
 
 ---
 
@@ -144,8 +164,6 @@ Programmer-specific descriptions for each SBTI type. Includes original type name
 
 ---
 
-## Low-Function Struggling Types
-
 ### JOKE-R → Bug丑 (小丑)
 
 - **Dev Style**: The Debugging Comedian
@@ -155,6 +173,8 @@ Programmer-specific descriptions for each SBTI type. Includes original type name
 - **Buddy Focus**: Comic relief, mood lifting, laughing through pain
 
 ---
+
+## Low-Function Struggling Types
 
 ### IMFW → Ghost线程 (废物)
 
@@ -196,27 +216,7 @@ Programmer-specific descriptions for each SBTI type. Includes original type name
 
 ---
 
-### FU?K → rm -rf (草者)
-
-- **Dev Style**: The Wild Card
-- **Intro**: zh: 你写代码像野草——杀不死、拔不尽、生命力旺盛到让人害怕。convention 对你来说是 suggestion。 / en: You code like weeds — unkillable, unstoppable, terrifyingly vigorous. Conventions are suggestions to you.
-- **Coding Portrait**: Your commit messages have been blocked by CI lint countless times. Your code follows zero patterns — but it runs faster than anyone else's. You're the one who solves in 30 lines at a hackathon what others can't solve in 300. You don't lack knowledge of the rules; you just selectively ignore them.
-- **Buddy Catchphrase**: zh: "管他的，先跑起来！" / en: "Screw it, just run it!"
-- **Buddy Focus**: Breaking limits, raw power, wild growth
-
----
-
 ## Specialist Types
-
-### POOR → malloc失败 (贫困者)
-
-- **Dev Style**: The Deep Specialist
-- **Intro**: zh: 你把所有 memory 都 allocate 给了一个 passion project，其他的全是 segfault。 / en: You allocated all your memory to one passion project. Everything else is a segfault.
-- **Coding Portrait**: You're an expert in exactly one domain, but in that domain you're a god. Your GitHub has one repo, but it has 5000 stars. You don't learn new frameworks, don't write new languages — because you haven't perfected the one in your hands yet. Others call you a T-shaped developer. You say no, you're I-shaped, and that I goes straight to the earth's core.
-- **Buddy Catchphrase**: zh: "这个不在我的范围..." / en: "That's outside my scope..."
-- **Buddy Focus**: Deep focus, depth over breadth, no distractions
-
----
 
 ### ZZZZ → Sleep(∞) (装死者)
 
@@ -248,15 +248,17 @@ Programmer-specific descriptions for each SBTI type. Includes original type name
 
 ---
 
-### LOVE-R → Merge恋 (多情者)
+### FU?K → rm -rf (草者)
 
-- **Dev Style**: The Merge Addict
-- **Intro**: zh: 你对每个 PR 都有感情，对每个 repo 都有故事。你不是在写代码，你是在和代码谈恋爱。 / en: You have feelings for every PR and a story for every repo. You're not writing code — you're in a relationship with it.
-- **Coding Portrait**: You star repos the way others swipe right. Your GitHub follows list is longer than your code. You've contributed to 20 open-source projects — not because you're a completionist, but because each one "spoke to you." You write the most heartfelt PR descriptions: "This merge completes a journey that started when I first saw this codebase..."
-- **Buddy Catchphrase**: zh: "这个 repo 好有感觉..." / en: "This repo... I feel something..."
-- **Buddy Focus**: Open-source passion, PR appreciation, emotional coding
+- **Dev Style**: The Wild Card
+- **Intro**: zh: 你写代码像野草——杀不死、拔不尽、生命力旺盛到让人害怕。convention 对你来说是 suggestion。 / en: You code like weeds — unkillable, unstoppable, terrifyingly vigorous. Conventions are suggestions to you.
+- **Coding Portrait**: Your commit messages have been blocked by CI lint countless times. Your code follows zero patterns — but it runs faster than anyone else's. You're the one who solves in 30 lines at a hackathon what others can't solve in 300. You don't lack knowledge of the rules; you just selectively ignore them.
+- **Buddy Catchphrase**: zh: "管他的，先跑起来！" / en: "Screw it, just run it!"
+- **Buddy Focus**: Breaking limits, raw power, wild growth
 
 ---
+
+## Special Types
 
 ### DIOR-s → Refactor君 (雕丝)
 
@@ -267,8 +269,6 @@ Programmer-specific descriptions for each SBTI type. Includes original type name
 - **Buddy Focus**: Code aesthetics, refactoring suggestions, clean architecture
 
 ---
-
-## Special Types
 
 ### HHHH → Hello World (傻乐者)
 
