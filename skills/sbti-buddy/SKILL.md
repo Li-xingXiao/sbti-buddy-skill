@@ -575,22 +575,47 @@ Generates a visually stunning 1200x630px PNG card for sharing on social media. U
    - All text labels and humor in user's detected language (`meta.lang`)
    - Copy avatar lines **verbatim** into `<pre>` tag — backslashes render correctly, do NOT escape them
 6. Save the HTML to `/tmp/sbti-share-card.html`.
-7. Screenshot via Chrome headless:
+7. **Detect a headless-capable browser.** Run the following commands in order, stop at the first one that succeeds (exit code 0 from `--version`):
+   ```
+   google-chrome --version
+   google-chrome-stable --version
+   chromium-browser --version
+   chromium --version
+   ```
+   Store the working binary name as `$BROWSER`.
+
+   **If none is found**, attempt automatic installation (ask the user for confirmation before running `sudo`):
+   - **Debian/Ubuntu** (`apt` available): `sudo apt-get update && sudo apt-get install -y chromium-browser || sudo apt-get install -y chromium`
+   - **macOS** (`brew` available): `brew install --cask chromium`
+   - **Snap** (`snap` available, apt failed): `sudo snap install chromium`
+   - After installation, re-detect using the same 4 commands above.
+
+   **If installation also fails or the user declines**, fall back gracefully:
+   - Output: "HTML card saved to `/tmp/sbti-share-card.html`. Open it in any browser and screenshot manually (1200×630px)."
+   - Skip steps 8–9, end here.
+
+8. Screenshot via the detected `$BROWSER`:
    ```bash
-   google-chrome --headless --disable-gpu --no-sandbox \
+   $BROWSER --headless --disable-gpu --no-sandbox \
      --screenshot=/tmp/sbti-share-card.png \
      --window-size=1200,630 \
      file:///tmp/sbti-share-card.html
    ```
-   If Chrome fails (exit code != 0), retry with xvfb-run wrapper:
+   If the screenshot command fails (exit code != 0), retry with `xvfb-run` wrapper (for headless Linux servers without a display):
    ```bash
-   xvfb-run --auto-servernum google-chrome --headless --disable-gpu --no-sandbox \
+   xvfb-run --auto-servernum $BROWSER --headless --disable-gpu --no-sandbox \
      --screenshot=/tmp/sbti-share-card.png \
      --window-size=1200,630 \
      file:///tmp/sbti-share-card.html
    ```
-8. Verify the PNG was created (file exists and size > 0).
-9. Output: "Share card saved to `/tmp/sbti-share-card.png`"
+   If `xvfb-run` is not found, try installing it: `sudo apt-get install -y xvfb`, then retry.
+
+   If all screenshot attempts fail, fall back:
+   - Output: "Screenshot failed. HTML card saved to `/tmp/sbti-share-card.html` — open it in a browser and screenshot manually."
+   - End here.
+
+9. Verify the PNG was created (file exists and size > 0).
+10. Output: "Share card saved to `/tmp/sbti-share-card.png`"
 
 **HTML generation rules:**
 - All CSS must be inlined in a `<style>` block (no external stylesheets)
