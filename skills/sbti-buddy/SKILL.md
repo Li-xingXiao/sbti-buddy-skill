@@ -304,6 +304,17 @@ chmod +x ~/.claude/sbti-buddy/hooks/start-animation.sh
 chmod +x ~/.claude/sbti-buddy/hooks/stop-animation.sh
 ```
 
+**IMPORTANT — Start animation daemon immediately after installation:**
+The PreToolUse hook (`start-animation.sh`) normally keeps the daemon alive, but hooks registered during the current session may not trigger until the next tool call. To ensure the buddy animates right away, **start the daemon directly** after writing all files:
+```bash
+# Write activity timestamp so daemon knows we're active
+date +%s > ~/.claude/sbti-buddy/.animation-state
+# Start daemon if not already running
+nohup bash ~/.claude/sbti-buddy/animate-loop.sh </dev/null >/dev/null 2>&1 &
+echo $! > ~/.claude/sbti-buddy/.animate-pid
+```
+This guarantees the buddy starts animating immediately after the first analysis, without waiting for the next tool call to trigger the hook.
+
 **auto-update-check.sh** logic:
 ```bash
 #!/bin/bash
