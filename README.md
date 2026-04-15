@@ -67,42 +67,19 @@ It generates:
 | 🎙️ Communication Style | Claude adapts tone, verbosity, assertiveness to your personality (style only, not reasoning) |
 | 📈 Evolution Log | Type change history — watch yourself grow over time |
 
-<details>
-<summary><b>📸 What it looks like (click to expand)</b></summary>
+<div align="center">
+<img src="assets/demo/achievements.png" alt="Everything SBTI Buddy Does" width="600">
+</div>
 
-<br>
+<div align="center">
 
-```
-╭──────────────────────────────────────────╮
-│  ✦ SBTI BUDDY CARD                      │
-│  ══════════════════                      │
-│                                          │
-│       \----/       CTRL                  │
-│      /^\  /^\      (拿捏者)              │
-│     < V    V >                           │
-│     (  ----  )     Match:  91%           │
-│      \ -[]- /     Style: Architect       │
-│      [ CTRL ]      DNA: ██▓░██▓░██       │
-│                                          │
-│  "Master of the codebase, PR terminator" │
-│                                          │
-│  ─── Dimensions ─────────────────────    │
-│  S  ██ ██ ██                             │
-│  E  ██ ▓░ ██                             │
-│  A  ▓░ ██ ██                             │
-│  Ac ██ ██ ██                             │
-│  So ▓░ ██ ▓░                             │
-│                                          │
-│  ★ ★ ★ ★ ☆ ☆ ☆ ☆ ☆ ☆ ☆ ☆ ☆ ☆ ☆       │
-│                                          │
-│  Confidence: Deep Portrait               │
-│  Generated:  2026-04-14                  │
-╰──────────────────────────────────────────╯
-```
+**📸 What it looks like / 运行效果**
 
-*The card includes: SBTI type with programmer avatar · 5-model dimension DNA bars · dev style · match similarity · 15 achievement badges · confidence level.*
+<img src="assets/demo/share-card.png" alt="SBTI Share Card" width="700">
 
-</details>
+<sub>Social media share card — type, dimensions, evolution history, AI roast / 社交媒体分享卡</sub>
+
+</div>
 
 <details>
 <summary><b>🐾 Meet the buddies (click to expand)</b></summary>
@@ -162,35 +139,9 @@ sbti
 
 ## How It Works / 工作流程
 
-```
-  📜 Your conversation history (~/.claude/history.jsonl)
-                        │
-          ┌─────────────▼──────────────┐
-          │  Read messages (Quick/Full) │
-          │  9 languages · 4 sources    │
-          └─────────────┬──────────────┘
-                        │
-          ┌─────────────▼──────────────┐
-          │  Score 15 dimensions        │
-          │  5 models × 3 sub-dims     │
-          │  S · E · A · Ac · So        │
-          └─────────────┬──────────────┘
-                        │
-          ┌─────────────▼──────────────┐
-          │  Euclidean distance match   │
-          │  → Best of 27 types         │
-          └─────────────┬──────────────┘
-                        │
-          ┌─────────────▼──────────────┐
-          │  Generate outputs           │
-          │  🎴 Card  🐾 Buddy  🧠 Skill│
-          └─────────────┬──────────────┘
-                        │
-          ┌─────────────▼──────────────┐
-          │  Install companion skill    │
-          │  + statusline animation     │
-          └────────────────────────────┘
-```
+<div align="center">
+<img src="assets/demo/analysis-pipeline.jpg" alt="SBTI Analysis Pipeline" width="700">
+</div>
 
 ---
 
@@ -210,6 +161,12 @@ sbti
 
 Each type comes with: ASCII avatar · programmer-flavored intro · coding portrait · buddy catchphrase · dev style label.
 
+<div align="center">
+<img src="assets/demo/types-gallery.jpg" alt="27 Programmer Archetypes Gallery" width="700">
+<br>
+<sub>All 27 types — categorized by behavioral pattern / 全部 27 种人格原型一览</sub>
+</div>
+
 ---
 
 ## The 5 Models / 五大模型
@@ -223,6 +180,12 @@ Each type comes with: ASCII avatar · programmer-flavored intro · coding portra
 | **So** — Communication | Initiative · AI Boundary · Expression Style | How you communicate and collaborate |
 
 Each dimension is scored **0–100**, mapped to **L/M/H**, forming a 15-dimensional DNA pattern like `HHM-HMH-MMH-HHH-MHM`.
+
+<div align="center">
+<img src="assets/demo/radar-chart.jpg" alt="SBTI Dimension Profile" width="700">
+<br>
+<sub>Radar chart + 15 sub-dimension breakdown / 雷达图 + 15 维度细分</sub>
+</div>
 
 ---
 
@@ -264,6 +227,12 @@ After analysis, Claude adapts **how it communicates** based on 5 personality dim
 >
 > **重要说明：** 这只会改变 Claude *跟你说话的方式*——语气、详细程度、直接程度。**不会**影响推理能力、技术准确性或决策质量。可以理解为调整了沟通频道，而不是大脑。
 
+<div align="center">
+<img src="assets/demo/ability.png" alt="Communication Style Adaptation" width="600">
+<br>
+<sub>Default Claude vs adapted for your type / 默认 Claude vs 适配你的类型后</sub>
+</div>
+
 ### 📈 Evolution
 
 Your type isn't static — it evolves as you grow. Every analysis is recorded. Run `sbti timeline` to see your journey:
@@ -303,6 +272,42 @@ Your type isn't static — it evolves as you grow. Every analysis is recorded. R
 > **How to match with a friend:** Both of you run `sbti` first. Then share your type code (from `sbti card`), pattern string (from `sbti spectrum`), or `~/.claude/sbti-buddy/profile.json` file. The more detail you share, the more precise the match.
 >
 > **怎么跟朋友匹配：** 双方都先跑一次 `sbti`，然后分享类型码（从 `sbti card` 获取）、pattern 字符串（从 `sbti spectrum` 获取）、或直接发送 `~/.claude/sbti-buddy/profile.json` 文件。分享的信息越详细，匹配越精准。
+
+<details>
+<summary><b>📸 Command screenshots / 命令运行截图 (click to expand)</b></summary>
+
+<br>
+
+<table>
+<tr>
+<td align="center"><b><code>sbti</code></b><br><sub>Full analysis / 完整分析</sub><br><img src="assets/command_picture/1.png" width="400"></td>
+<td align="center"><b><code>sbti card</code></b><br><sub>Buddy card / 伙伴卡片</sub><br><img src="assets/command_picture/2.png" width="400"></td>
+</tr>
+<tr>
+<td align="center"><b><code>sbti timeline</code></b><br><sub>Evolution history / 进化轨迹</sub><br><img src="assets/command_picture/3.png" width="400"></td>
+<td align="center"><b><code>sbti spectrum</code></b><br><sub>Top 5 types / 类型光谱</sub><br><img src="assets/command_picture/4.png" width="400"></td>
+</tr>
+<tr>
+<td align="center"><b><code>sbti match DEAD</code></b><br><sub>Match by type / 按类型匹配</sub><br><img src="assets/command_picture/5.png" width="400"></td>
+<td align="center"><b><code>sbti match &lt;pattern&gt;</code></b><br><sub>Match by pattern / 按模式匹配</sub><br><img src="assets/command_picture/6.png" width="400"></td>
+</tr>
+<tr>
+<td align="center"><b><code>sbti match &lt;file&gt;</code></b><br><sub>Match by profile / 导入匹配</sub><br><img src="assets/command_picture/7.png" width="400"></td>
+<td align="center"><b><code>sbti roast</code></b><br><sub>Buddy roast / 伙伴吐槽</sub><br><img src="assets/command_picture/8.png" width="400"></td>
+</tr>
+<tr>
+<td align="center"><b><code>sbti fortune</code></b><br><sub>Daily fortune / 今日运势</sub><br><img src="assets/command_picture/9.png" width="400"></td>
+<td align="center"><b><code>update my sbti</code></b><br><sub>Incremental update / 增量更新</sub><br><img src="assets/command_picture/11.png" width="400"></td>
+</tr>
+</table>
+
+</details>
+
+<div align="center">
+<img src="assets/demo/type-match.jpg" alt="Type Compatibility Match" width="700">
+<br>
+<sub><code>sbti match DEAD</code> — 15-dimension compatibility comparison / 15 维度兼容性对比</sub>
+</div>
 
 ---
 
