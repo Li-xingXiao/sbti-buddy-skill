@@ -683,8 +683,9 @@ SBTI Buddy animation is implemented via a **background daemon + statusline + hoo
 - A background daemon (`animate-loop.sh`) continuously pre-renders animation frames to `.current-render`
 - The statusline renderer just `cat`s the pre-rendered file — ultra-fast, always shows a fresh frame
 - Hooks write timestamps to `.animation-state` so the daemon knows when to speed up
-- **Active mode** (within 60s of last statusline poll): 0.4s/frame — blink, talk, ear wiggle, hair sway
-- **Idle mode** (no poll for 60s+): 1.2s/frame — periodic blinks and twitches with mood awareness
+- **Active mode** (within 60s of last statusline poll): 0.3-0.5s/frame with jitter — blink, talk, ear wiggle, hair sway (no static base frames — every frame is animated)
+- **Idle mode** (no poll for 60s+): 0.8-1.2s/frame with jitter — mix of base and animation frames with mood awareness
+- **Anti-aliasing jitter**: Random sleep variation prevents sampling aliasing where fixed poll intervals always catch the same frame position in the cycle
 - **Note on statusline refresh**: Claude Code's statusline is event-driven — it only re-renders on assistant message completion, permission mode changes, and vim toggle. It does NOT refresh during user typing. The daemon pre-renders frames so each event-triggered refresh shows a different frame, creating a lively animation during responses
 
 ### Architecture
@@ -693,7 +694,8 @@ SBTI Buddy animation is implemented via a **background daemon + statusline + hoo
 ┌─ Background Daemon (animate-loop.sh) ────────────────┐
 │                                                        │
 │  Runs continuously, pre-renders frames to              │
-│  .current-render every 0.4s (active) or 1.2s (idle)   │
+│  .current-render every 0.3-0.5s (active) or           │
+│  0.8-1.2s (idle) with random jitter                    │
 │                                                        │
 │  Active = .animation-state timestamp < 60s ago          │
 │  Idle = no activity for 60s+                           │
@@ -816,8 +818,8 @@ RENDER_FILE="$BUDDY_DIR/.current-render"
 IDLE_TIMEOUT=3600  # Exit after 1h of no activity (hooks stop writing timestamps)
 
 # Animation sequences
-ACTIVE_SEQ=("blink" "base" "talk" "base" "wiggle" "base" "sway" "base")
-IDLE_SEQ=("base" "blink" "base" "talk" "base" "wiggle" "base" "sway" "base" "blink" "base" "talk")
+ACTIVE_SEQ=("blink" "talk" "wiggle" "sway" "blink" "talk" "wiggle" "sway")
+IDLE_SEQ=("base" "blink" "talk" "base" "wiggle" "sway" "blink" "talk" "base" "wiggle" "sway" "blink")
 
 # Output frame with | borders to preserve whitespace in statusline
 show() {
@@ -855,12 +857,12 @@ while true; do
     FRAME="${ACTIVE_SEQ[$ACTIVE_IDX]}"
     ACTIVE_IDX=$(( (ACTIVE_IDX + 1) % ${#ACTIVE_SEQ[@]} ))
     IDLE_IDX=0
-    SLEEP=0.4
+    SLEEP="0.$(( 300 + RANDOM % 200 ))"  # 0.3-0.5s with jitter to avoid aliasing
   else
     # === Idle mode: moderate cycling with mood awareness ===
     FRAME="${IDLE_SEQ[$IDLE_IDX]}"
     IDLE_IDX=$(( (IDLE_IDX + 1) % ${#IDLE_SEQ[@]} ))
-    SLEEP=1.2
+    SLEEP="0.$(( 800 + RANDOM % 400 ))"  # 0.8-1.2s with jitter
 
     # Apply mood override for "base" frames
     if [ "$FRAME" = "base" ]; then
