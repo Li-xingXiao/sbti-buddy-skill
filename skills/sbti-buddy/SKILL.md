@@ -197,7 +197,7 @@ cat ~/.claude/sbti-buddy/evolution.json 2>/dev/null
 **evolution.json** structure: see companion-system.md §7.
 **buddy-frames.json**: Generated from `ascii-avatars.md`, contains the matched type's 6 base lines + animation variants in JSON format.
 **frames/**: Pre-generated plain text frame files. Each file contains the full 6-line ASCII art with the appropriate line substitution already applied. Generated from `buddy-frames.json` during installation — see `ascii-avatars.md` §2 for the generation process. This eliminates `jq` dependency at runtime (~16ms per render vs ~200ms with jq). **Important**: Use Python (not awk/sed/shell) to generate these files — shell tools strip backslashes from ASCII art.
-**animate-loop.sh**: Background animation daemon. Pre-renders frames to `.current-render` continuously — 0.4s/frame in active mode, 1.2s/frame in idle mode. Started by `start-animation.sh` on first tool call, self-terminates after 1h of no activity, auto-restarts on next tool call. See `ascii-avatars.md` §3.
+**animate-loop.sh**: Background animation daemon. Pre-renders frames to `.current-render` continuously — 0.4s/frame in active mode (within 60s of last statusline poll), 1.2s/frame in idle mode (no poll for 60s+). The 60s active window means the daemon stays lively during normal conversation pace. Started by `start-animation.sh` on first tool call, self-terminates after 1h of no activity, auto-restarts on next tool call. See `ascii-avatars.md` §3.
 **statusline-render.sh**: Ultra-fast renderer — `cat .current-render` + updates `.animation-state` timestamp on every refresh. This keeps the daemon in active mode during Claude's response (statusline refreshes on each message/tool completion). Falls back to direct base frame render if daemon hasn't started. See `ascii-avatars.md` §4.
 **hooks/**: `start-animation.sh` writes epoch timestamp to `.animation-state` AND ensures the animation daemon is running (starts it if not). `stop-animation.sh` writes epoch timestamp only. The daemon uses the timestamp to determine active (< 5s) vs idle mode.
 
@@ -226,6 +226,7 @@ description: "Your SBTI buddy companion: {BUDDY_NAME} ({TYPE_CODE}). Adapts comm
 **communication-style.md**: Generated from SBTI dimension scores. Adapts Claude's overall communication style (verbosity, tone, assertiveness, proactivity, decision framing) to match the user's personality. See `companion-skill-template.md` §5 for the template and filling rules, and `companion-system.md` §1.4 for the dimension mapping.
 
 **Companion behavior rules** (written into the skill):
+- **Animation keep-alive**: At the start of any response involving tool calls, run `date +%s > ~/.claude/sbti-buddy/.animation-state 2>/dev/null` (once per response, silently). This keeps the daemon active without relying on hooks (which aren't available until restart on first install). See `companion-skill-template.md` for full rules.
 - `communication-style.md` rules apply to ALL Claude responses (not just buddy comments)
 - In daily coding sessions, the companion MAY append a 1-line buddy comment at the end of responses (max 1 per 3 interactions, do NOT affect technical accuracy)
 - Comment style matches the buddy's voice (see personality.md)

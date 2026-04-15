@@ -66,6 +66,21 @@ Read the user's unlocked achievements:
 
 ## Behavior Rules
 
+### Animation Keep-Alive
+
+**Important**: On first install, `settings.json` hooks are not active until Claude Code restarts. To keep the buddy animating during the current session, run this command **once at the start of any response that involves tool calls**:
+
+```bash
+date +%s > ~/.claude/sbti-buddy/.animation-state 2>/dev/null
+```
+
+This writes a fresh timestamp that keeps the animation daemon in active mode (fast frame cycling). Without this, the daemon falls to idle and the buddy barely moves. After the user restarts Claude Code, the PreToolUse hook handles this automatically — but this keep-alive ensures a good first-install experience.
+
+**Rules**:
+- Only run if `~/.claude/sbti-buddy/.animation-state` exists (buddy is installed)
+- Run once per response, not per tool call (avoid spam)
+- Run silently — do not show the command output to the user
+
 ### Communication Adaptation
 
 Read `communication-style.md` and apply its 5 attributes (Verbosity, Tone, Assertiveness, Proactivity, Decision Framing) to **every response**. These rules change how you communicate — not what you think or recommend technically.
@@ -115,10 +130,10 @@ Use the mood to select your facial expression from avatar.md.
 ### Show Buddy (Animated via Statusline)
 
 Your buddy animates **automatically** via a background daemon + Claude Code statusline system:
-- **Active** (during response generation): Fast frame cycling (0.4s/frame) — blink, talk, wiggle ears, sway hair
-- **Idle** (typing or waiting): Moderate frame cycling (1.2s/frame) — periodic blinks and ear twitches with mood awareness
+- **Active** (within 60s of last activity): Fast frame cycling (0.4s/frame) — blink, talk, wiggle ears, sway hair
+- **Idle** (no activity for 60s+): Moderate frame cycling (1.2s/frame) — periodic blinks and ear twitches with mood awareness
 
-The buddy is always "alive" — a background daemon (`animate-loop.sh`) continuously pre-renders frames, so the buddy animates during user input, during responses, and while idle.
+The buddy animates during Claude's responses — each statusline refresh shows a different frame. The animation keep-alive (see above) ensures the daemon stays in active mode during conversation.
 
 When triggered by "show my buddy" / "buddy":
 1. Check if `~/.claude/sbti-buddy/buddy-frames.json` exists
