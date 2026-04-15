@@ -7,7 +7,7 @@ Reference template for the `sbti share` command. Claude reads this template, fil
 ## Card Specifications
 
 - **Dimensions**: 1200 x 630 px (Twitter / OpenGraph standard)
-- **Output**: `/tmp/sbti-share-card.html` → Chrome headless → `/tmp/sbti-share-card.png`
+- **Output**: `/tmp/sbti-share-card.html` → Chrome headless @ 2x DPR → `/tmp/sbti-share-card.png` (2400 x 1260 actual pixels)
 - **Theme**: Dark terminal aesthetic
 - **Constraints**: Self-contained HTML + inline CSS. No JavaScript, no external resources, no CDN links.
 
@@ -47,6 +47,10 @@ body { font-family: 'Noto Sans CJK SC', 'Noto Sans CJK TC', 'Noto Sans CJK JP', 
 <meta charset="UTF-8">
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
+
+html {
+  background: #0d1117;
+}
 
 body {
   width: 1200px;
@@ -548,8 +552,11 @@ The `TIMELINE_NODES` would render:
 
 ## Chrome Screenshot Command
 
+Use `--force-device-scale-factor=2` to render at 2x resolution for a sharp, HD image (2400x1260 actual pixels).
+
 ```bash
 google-chrome --headless --disable-gpu --no-sandbox \
+  --force-device-scale-factor=2 \
   --screenshot=/tmp/sbti-share-card.png \
   --window-size=1200,630 \
   file:///tmp/sbti-share-card.html
@@ -559,9 +566,10 @@ If this fails (e.g., no display available), retry with:
 
 ```bash
 xvfb-run --auto-servernum google-chrome --headless --disable-gpu --no-sandbox \
+  --force-device-scale-factor=2 \
   --screenshot=/tmp/sbti-share-card.png \
   --window-size=1200,630 \
   file:///tmp/sbti-share-card.html
 ```
 
-Verify the PNG was created: check file exists and size > 0.
+Verify the PNG was created: check file exists and size > 0. Expected dimensions: 2400x1260px.
