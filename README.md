@@ -6,7 +6,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Claude Code](https://img.shields.io/badge/Claude_Code-skill-14b8a6?logo=anthropic&logoColor=white)](https://claude.ai/claude-code)
-[![GitHub stars](https://img.shields.io/github/stars/Li-xingXiao/sbti-buddy-skill?style=social)](https://github.com/Li-xingXiao/sbti-buddy-skill)
+[![GitHub stars](https://img.shields.io/github/stars/Li-xingXiao/sbti-buddy-skill?style=social&cacheSeconds=0)](https://github.com/Li-xingXiao/sbti-buddy-skill)
 
 **Personality tests capture a moment. Your AI conversations reveal who you really are.**
 
