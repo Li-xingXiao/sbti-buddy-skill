@@ -30,6 +30,8 @@ If ambiguous, ask the user which action they want.
 
 ## Analyze (full analysis)
 
+**IMPORTANT**: When this command is triggered, you MUST execute the full analysis pipeline (Steps 0-7) below. Do NOT skip the analysis even if a companion skill or profile.json already exists — the user explicitly wants a fresh analysis. Do NOT respond as the buddy persona; instead, act as the SBTI analyzer.
+
 ### Step 0: Ask analysis mode
 
 Before reading any data, ask the user:
