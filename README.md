@@ -274,7 +274,7 @@ Your type isn't static — it evolves as you grow. Every analysis is recorded. R
 > **怎么跟朋友匹配：** 双方都先跑一次 `sbti`，然后分享类型码（从 `sbti card` 获取）、pattern 字符串（从 `sbti spectrum` 获取）、或直接发送 `~/.claude/sbti-buddy/profile.json` 文件。分享的信息越详细，匹配越精准。
 
 <details>
-<summary><b>📸 Command screenshots / 命令运行截图 (click to expand)</b></summary>
+<summary><b>📸 Command examples / 命令运行示例 (click to expand)</b></summary>
 
 <br>
 
@@ -301,13 +301,13 @@ Your type isn't static — it evolves as you grow. Every analysis is recorded. R
 </tr>
 </table>
 
-</details>
-
 <div align="center">
 <img src="assets/demo/type-match.jpg" alt="Type Compatibility Match" width="700">
 <br>
 <sub><code>sbti match DEAD</code> — 15-dimension compatibility comparison / 15 维度兼容性对比</sub>
 </div>
+
+</details>
 
 ---
 
