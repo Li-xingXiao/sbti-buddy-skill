@@ -683,9 +683,9 @@ SBTI Buddy animation is implemented via a **background daemon + statusline + hoo
 - A background daemon (`animate-loop.sh`) continuously pre-renders animation frames to `.current-render`
 - The statusline renderer just `cat`s the pre-rendered file — ultra-fast, always shows a fresh frame
 - Hooks write timestamps to `.animation-state` so the daemon knows when to speed up
-- **Active mode** (during response): 0.4s/frame — blink, talk, ear wiggle, hair sway
-- **Idle mode** (typing or waiting): 1.2s/frame — periodic blinks and twitches with mood awareness
-- The buddy is always alive — it animates during user input, during responses, and while idle
+- **Active mode** (during Claude's response): 0.4s/frame — blink, talk, ear wiggle, hair sway
+- **Idle mode** (between responses): 1.2s/frame — periodic blinks and twitches with mood awareness
+- **Note on statusline refresh**: Claude Code's statusline is event-driven — it only re-renders on assistant message completion, permission mode changes, and vim toggle. It does NOT refresh during user typing. The daemon pre-renders frames so each event-triggered refresh shows a different frame, creating a lively animation during responses
 
 ### Architecture
 
@@ -714,7 +714,7 @@ SBTI Buddy animation is implemented via a **background daemon + statusline + hoo
 └────────────────────────────────────────────────────────┘
 ```
 
-**Why a background daemon?** Claude Code's statusline is event-driven — it only re-evaluates on tool calls and messages, not on a periodic timer. Without a daemon, the buddy can only change frames when an event triggers a statusline refresh. The daemon pre-renders frames continuously so that whenever the statusline does refresh (during user input, tool calls, or messages), it always shows a fresh, different frame. This makes the buddy feel alive at all times.
+**Why a background daemon?** Claude Code's statusline is event-driven — it only re-renders on assistant message completion, permission mode changes, and vim toggle. It does NOT refresh during user typing. Without a daemon, the buddy would show the same frame for the entire duration of a tool call. The daemon pre-renders frames continuously so that each statusline refresh (triggered by tool completions and messages during Claude's response) shows a fresh, different frame — creating lively animation while Claude is working.
 
 ### Generated File List
 
@@ -804,10 +804,10 @@ Background animation daemon. Started by `start-animation.sh` (PreToolUse hook) o
 # Started by PreToolUse hook, self-terminates after 1h of no activity or if buddy files removed
 # Auto-restarts on next tool call via start-animation.sh
 #
-# Active mode (CLI in use < 5s ago): fast cycling (0.4s/frame)
-#   - statusline-render.sh updates timestamp on every poll, so buddy stays
-#     active whenever the user is typing or Claude is working
-# Idle mode (CLI idle > 5s):         moderate cycling (1.2s/frame)
+# Active mode (last statusline refresh < 5s ago): fast cycling (0.4s/frame)
+#   - statusline-render.sh updates timestamp on every refresh event
+#   - Claude Code refreshes statusline on message/tool completion during responses
+# Idle mode (no refresh > 5s): moderate cycling (1.2s/frame)
 
 BUDDY_DIR="$HOME/.claude/sbti-buddy"
 FRAMES_DIR="$BUDDY_DIR/frames"
@@ -892,7 +892,7 @@ done
 
 Ultra-fast statusline renderer. Just outputs the pre-rendered frame from `animate-loop.sh`. Falls back to direct base frame render if daemon hasn't started yet.
 
-The renderer also writes the current timestamp to `.animation-state` on every call. Since Claude Code polls the statusline continuously (including while the user is typing), this keeps the animation daemon in **active mode** whenever the CLI is in use — making the buddy animate lively during typing, not just during tool calls.
+The renderer also writes the current timestamp to `.animation-state` on every call. This keeps the animation daemon in **active mode** during Claude's response — each statusline refresh (on message/tool completion) updates the timestamp, so the daemon stays in fast-cycling mode throughout the response. Between responses, the timestamp ages past 5s and the daemon drops to idle mode.
 
 ```bash
 #!/bin/bash

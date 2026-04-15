@@ -198,7 +198,7 @@ cat ~/.claude/sbti-buddy/evolution.json 2>/dev/null
 **buddy-frames.json**: Generated from `ascii-avatars.md`, contains the matched type's 6 base lines + animation variants in JSON format.
 **frames/**: Pre-generated plain text frame files. Each file contains the full 6-line ASCII art with the appropriate line substitution already applied. Generated from `buddy-frames.json` during installation — see `ascii-avatars.md` §2 for the generation process. This eliminates `jq` dependency at runtime (~16ms per render vs ~200ms with jq). **Important**: Use Python (not awk/sed/shell) to generate these files — shell tools strip backslashes from ASCII art.
 **animate-loop.sh**: Background animation daemon. Pre-renders frames to `.current-render` continuously — 0.4s/frame in active mode, 1.2s/frame in idle mode. Started by `start-animation.sh` on first tool call, self-terminates after 1h of no activity, auto-restarts on next tool call. See `ascii-avatars.md` §3.
-**statusline-render.sh**: Ultra-fast renderer — `cat .current-render` + updates `.animation-state` timestamp on every poll. This keeps the daemon in active mode whenever Claude Code is running (including while the user is typing). Falls back to direct base frame render if daemon hasn't started. See `ascii-avatars.md` §4.
+**statusline-render.sh**: Ultra-fast renderer — `cat .current-render` + updates `.animation-state` timestamp on every refresh. This keeps the daemon in active mode during Claude's response (statusline refreshes on each message/tool completion). Falls back to direct base frame render if daemon hasn't started. See `ascii-avatars.md` §4.
 **hooks/**: `start-animation.sh` writes epoch timestamp to `.animation-state` AND ensures the animation daemon is running (starts it if not). `stop-animation.sh` writes epoch timestamp only. The daemon uses the timestamp to determine active (< 5s) vs idle mode.
 
 #### 6b: Generate and install companion skill
@@ -420,11 +420,12 @@ Trigger: "show my buddy" / "buddy"
 1. Check `~/.claude/sbti-buddy/frames/base.txt` exists. If missing, tell user to run analysis first.
 2. Verify statusline and hooks are configured in the user's Claude Code settings (see Step 6c).
 3. The buddy animates **automatically** via the event-driven statusline system:
-   - **Active mode** (during response generation): Cycles through blink → talk → wiggle → sway on each tool call, showing a different expression every time Claude uses a tool
+   - **Active mode** (during Claude's response): Cycles through blink → talk → wiggle → sway on each statusline refresh, showing a different expression as Claude processes tools and generates messages
    - **Idle mode** (between responses): Shows mood-based expression — tired face after 22:00, focused during afternoon, base expression otherwise
+   - **Note**: Claude Code's statusline only refreshes on assistant message completion, permission changes, and vim toggle — not during user typing. The buddy animates during Claude's responses, not while you type.
 4. Print the current static avatar from `frames/base.txt` **inside a triple-backtick code block** to preserve leading whitespace.
 5. Append buddy greeting in their voice.
-6. Remind user: "Your buddy lives in the statusline! It changes expressions as I use tools — watch it blink, talk, and wiggle while I respond. Between responses, its mood matches the time of day."
+6. Remind user: "Your buddy lives in the statusline! Watch it blink, talk, and wiggle while I respond — it changes expressions on each tool call and message. Between responses, its mood matches the time of day."
 
 ---
 
@@ -636,9 +637,10 @@ Generates a visually stunning 1200x630px PNG card for sharing on social media. U
    - Output: "HTML card saved to `/tmp/sbti-share-card.html`. Open it in any browser and screenshot manually (1200×630px)."
    - Skip steps 8–9, end here.
 
-8. Screenshot via the detected `$BROWSER`:
+8. Screenshot via the detected `$BROWSER` at 2x DPR for HD output (2400x1260 actual pixels):
    ```bash
    $BROWSER --headless --disable-gpu --no-sandbox \
+     --force-device-scale-factor=2 \
      --screenshot=/tmp/sbti-share-card.png \
      --window-size=1200,630 \
      file:///tmp/sbti-share-card.html
@@ -646,6 +648,7 @@ Generates a visually stunning 1200x630px PNG card for sharing on social media. U
    If the screenshot command fails (exit code != 0), retry with `xvfb-run` wrapper (for headless Linux servers without a display):
    ```bash
    xvfb-run --auto-servernum $BROWSER --headless --disable-gpu --no-sandbox \
+     --force-device-scale-factor=2 \
      --screenshot=/tmp/sbti-share-card.png \
      --window-size=1200,630 \
      file:///tmp/sbti-share-card.html
