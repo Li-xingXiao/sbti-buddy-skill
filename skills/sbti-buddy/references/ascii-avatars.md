@@ -804,8 +804,10 @@ Background animation daemon. Started by `start-animation.sh` (PreToolUse hook) o
 # Started by PreToolUse hook, self-terminates after 1h of no activity or if buddy files removed
 # Auto-restarts on next tool call via start-animation.sh
 #
-# Active mode (tool call < 5s ago): fast cycling (0.4s/frame)
-# Idle mode (no recent activity):   moderate cycling (1.2s/frame)
+# Active mode (CLI in use < 5s ago): fast cycling (0.4s/frame)
+#   - statusline-render.sh updates timestamp on every poll, so buddy stays
+#     active whenever the user is typing or Claude is working
+# Idle mode (CLI idle > 5s):         moderate cycling (1.2s/frame)
 
 BUDDY_DIR="$HOME/.claude/sbti-buddy"
 FRAMES_DIR="$BUDDY_DIR/frames"
@@ -890,14 +892,19 @@ done
 
 Ultra-fast statusline renderer. Just outputs the pre-rendered frame from `animate-loop.sh`. Falls back to direct base frame render if daemon hasn't started yet.
 
+The renderer also writes the current timestamp to `.animation-state` on every call. Since Claude Code polls the statusline continuously (including while the user is typing), this keeps the animation daemon in **active mode** whenever the CLI is in use — making the buddy animate lively during typing, not just during tool calls.
+
 ```bash
 #!/bin/bash
 # SBTI Buddy Statusline Renderer
 # Ultra-fast: just output the pre-rendered frame from animate-loop.sh daemon
-# Animation logic is handled by the background daemon, not here
+# Also updates activity timestamp to keep daemon in active mode while CLI is running
 
 BUDDY_DIR="$HOME/.claude/sbti-buddy"
 RENDER_FILE="$BUDDY_DIR/.current-render"
+
+# Keep daemon in active mode whenever statusline is being polled
+date +%s > "$BUDDY_DIR/.animation-state" 2>/dev/null
 
 if [ -f "$RENDER_FILE" ]; then
   cat "$RENDER_FILE"

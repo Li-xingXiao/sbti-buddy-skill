@@ -198,7 +198,7 @@ cat ~/.claude/sbti-buddy/evolution.json 2>/dev/null
 **buddy-frames.json**: Generated from `ascii-avatars.md`, contains the matched type's 6 base lines + animation variants in JSON format.
 **frames/**: Pre-generated plain text frame files. Each file contains the full 6-line ASCII art with the appropriate line substitution already applied. Generated from `buddy-frames.json` during installation — see `ascii-avatars.md` §2 for the generation process. This eliminates `jq` dependency at runtime (~16ms per render vs ~200ms with jq). **Important**: Use Python (not awk/sed/shell) to generate these files — shell tools strip backslashes from ASCII art.
 **animate-loop.sh**: Background animation daemon. Pre-renders frames to `.current-render` continuously — 0.4s/frame in active mode, 1.2s/frame in idle mode. Started by `start-animation.sh` on first tool call, self-terminates after 1h of no activity, auto-restarts on next tool call. See `ascii-avatars.md` §3.
-**statusline-render.sh**: Ultra-fast renderer — just `cat .current-render`. Falls back to direct base frame render if daemon hasn't started. See `ascii-avatars.md` §4.
+**statusline-render.sh**: Ultra-fast renderer — `cat .current-render` + updates `.animation-state` timestamp on every poll. This keeps the daemon in active mode whenever Claude Code is running (including while the user is typing). Falls back to direct base frame render if daemon hasn't started. See `ascii-avatars.md` §4.
 **hooks/**: `start-animation.sh` writes epoch timestamp to `.animation-state` AND ensures the animation daemon is running (starts it if not). `stop-animation.sh` writes epoch timestamp only. The daemon uses the timestamp to determine active (< 5s) vs idle mode.
 
 #### 6b: Generate and install companion skill
