@@ -288,7 +288,7 @@ Your type isn't static — it evolves as you grow. Every analysis is recorded. R
 <td align="center" valign="top"><b><code>sbti spectrum</code></b><br><sub>Top 5 types / 类型光谱</sub><br><img src="assets/command_picture/4.png" width="400"></td>
 </tr>
 <tr>
-<td align="center" valign="top"><b><code>sbti match DEAD</code></b><br><sub>Match by type / 按类型匹配</sub><br><img src="assets/command_picture/5.png" width="400"></td>
+<td align="center" valign="top"><b><code>sbti match &lt;type&gt;</code></b><br><sub>Match by type / 按类型匹配</sub><br><img src="assets/command_picture/5.png" width="400"></td>
 <td align="center" valign="top"><b><code>sbti match &lt;pattern&gt;</code></b><br><sub>Match by pattern / 按模式匹配</sub><br><img src="assets/command_picture/6.png" width="400"></td>
 </tr>
 <tr>
