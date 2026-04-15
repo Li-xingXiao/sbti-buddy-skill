@@ -245,8 +245,14 @@ description: "Your SBTI buddy companion: {BUDDY_NAME} ({TYPE_CODE}). Adapts comm
 
 **No conflict**: They occupy different UI areas. Users can have both active simultaneously.
 
-**Before writing statusLine config**, back up any existing entry:
+**Before writing statusLine config**, check if SBTI statusLine is already configured (to determine if restart notice is needed in Step 7) and back up any existing entry:
 ```bash
+# Check if SBTI statusline is already active (skip restart notice if true)
+SBTI_ALREADY_INSTALLED=false
+if grep -q "sbti-buddy/statusline-render.sh" ~/.claude/settings.json 2>/dev/null; then
+  SBTI_ALREADY_INSTALLED=true
+fi
+# Back up previous statusLine config
 if command -v jq &>/dev/null && [ -f ~/.claude/settings.json ]; then
   jq '.statusLine // empty' ~/.claude/settings.json > ~/.claude/sbti-buddy/.prev-statusline.json 2>/dev/null
 fi
@@ -399,7 +405,8 @@ Output to the user:
 6. **Evolution milestone** (if type changed)
 7. Where companion skill was installed
 8. **Buddy location**: Mention that the SBTI buddy lives in the bottom statusline, and coexists with the built-in `/buddy` if active.
-9. Available commands: `sbti card`, `sbti timeline`, `sbti roast`, `sbti fortune`, `sbti spectrum`, `sbti share`
+9. **Restart notice** (first-time install only): Claude Code does not hot-reload `settings.json` changes mid-session. The statusline buddy and hooks only take effect after restarting Claude Code. Tell the user: "Please restart Claude Code (`Ctrl+C` then relaunch) to see your buddy in the statusline. It will animate automatically from the next session onward." — Skip this notice if the user already had statusLine configured before this analysis (i.e., this is a re-analysis, not a first install).
+10. Available commands: `sbti card`, `sbti timeline`, `sbti spectrum`, `sbti match`, `sbti roast`, `sbti fortune`, `sbti share`, `update my sbti`
 
 ---
 
