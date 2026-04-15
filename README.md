@@ -280,24 +280,24 @@ Your type isn't static — it evolves as you grow. Every analysis is recorded. R
 
 <table>
 <tr>
-<td align="center"><b><code>sbti</code></b><br><sub>Full analysis / 完整分析</sub><br><img src="assets/command_picture/1.png" width="400"></td>
-<td align="center"><b><code>sbti card</code></b><br><sub>Buddy card / 伙伴卡片</sub><br><img src="assets/command_picture/2.png" width="400"></td>
+<td align="center" valign="top"><b><code>sbti</code></b><br><sub>Full analysis / 完整分析</sub><br><img src="assets/command_picture/1.png" width="400"></td>
+<td align="center" valign="top"><b><code>sbti card</code></b><br><sub>Buddy card / 伙伴卡片</sub><br><img src="assets/command_picture/2.png" width="400"></td>
 </tr>
 <tr>
-<td align="center"><b><code>sbti timeline</code></b><br><sub>Evolution history / 进化轨迹</sub><br><img src="assets/command_picture/3.png" width="400"></td>
-<td align="center"><b><code>sbti spectrum</code></b><br><sub>Top 5 types / 类型光谱</sub><br><img src="assets/command_picture/4.png" width="400"></td>
+<td align="center" valign="top"><b><code>sbti timeline</code></b><br><sub>Evolution history / 进化轨迹</sub><br><img src="assets/command_picture/3.png" width="400"></td>
+<td align="center" valign="top"><b><code>sbti spectrum</code></b><br><sub>Top 5 types / 类型光谱</sub><br><img src="assets/command_picture/4.png" width="400"></td>
 </tr>
 <tr>
-<td align="center"><b><code>sbti match DEAD</code></b><br><sub>Match by type / 按类型匹配</sub><br><img src="assets/command_picture/5.png" width="400"></td>
-<td align="center"><b><code>sbti match &lt;pattern&gt;</code></b><br><sub>Match by pattern / 按模式匹配</sub><br><img src="assets/command_picture/6.png" width="400"></td>
+<td align="center" valign="top"><b><code>sbti match DEAD</code></b><br><sub>Match by type / 按类型匹配</sub><br><img src="assets/command_picture/5.png" width="400"></td>
+<td align="center" valign="top"><b><code>sbti match &lt;pattern&gt;</code></b><br><sub>Match by pattern / 按模式匹配</sub><br><img src="assets/command_picture/6.png" width="400"></td>
 </tr>
 <tr>
-<td align="center"><b><code>sbti match &lt;file&gt;</code></b><br><sub>Match by profile / 导入匹配</sub><br><img src="assets/command_picture/7.png" width="400"></td>
-<td align="center"><b><code>sbti roast</code></b><br><sub>Buddy roast / 伙伴吐槽</sub><br><img src="assets/command_picture/8.png" width="400"></td>
+<td align="center" valign="top"><b><code>sbti match &lt;file&gt;</code></b><br><sub>Match by profile / 导入匹配</sub><br><img src="assets/command_picture/7.png" width="400"></td>
+<td align="center" valign="top"><b><code>sbti roast</code></b><br><sub>Buddy roast / 伙伴吐槽</sub><br><img src="assets/command_picture/8.png" width="400"></td>
 </tr>
 <tr>
-<td align="center"><b><code>sbti fortune</code></b><br><sub>Daily fortune / 今日运势</sub><br><img src="assets/command_picture/9.png" width="400"></td>
-<td align="center"><b><code>update my sbti</code></b><br><sub>Incremental update / 增量更新</sub><br><img src="assets/command_picture/11.png" width="400"></td>
+<td align="center" valign="top"><b><code>sbti fortune</code></b><br><sub>Daily fortune / 今日运势</sub><br><img src="assets/command_picture/9.png" width="400"></td>
+<td align="center" valign="top"><b><code>update my sbti</code></b><br><sub>Incremental update / 增量更新</sub><br><img src="assets/command_picture/11.png" width="400"></td>
 </tr>
 </table>
 
