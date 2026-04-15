@@ -54,7 +54,7 @@ It generates:
 
 ---
 
-**Input:** Your `~/.claude/history.jsonl` (read-only, never sent anywhere)
+**Input:** Your conversation history — `~/.claude/history.jsonl` and/or `~/.codex/history.jsonl` (read-only, never sent anywhere)
 
 **Output:**
 
@@ -314,6 +314,7 @@ Your type isn't static — it evolves as you grow. Every analysis is recorded. R
 ## Privacy / 隐私
 
 - Only reads local history files — **nothing is sent externally**
+- Supports multiple data sources: Claude Code (`~/.claude/`) and OpenAI Codex (`~/.codex/`) — choose which to analyze when running `sbti`
 - API keys, tokens, passwords, file paths, PII are **auto-redacted** from all analysis
 - Companion skill contains **zero raw messages** — only abstracted personality traits
 - All processing happens in your Claude Code session
@@ -322,8 +323,8 @@ Your type isn't static — it evolves as you grow. Every analysis is recorded. R
 
 ## Requirements / 环境要求
 
-- Claude Code
-- 20+ messages of conversation history
+- Claude Code (required — this is a Claude Code skill)
+- 20+ messages of conversation history (from Claude Code and/or OpenAI Codex)
 - That's it. No API keys, no accounts, no dependencies.
 
 ---

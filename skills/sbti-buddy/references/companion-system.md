@@ -219,7 +219,8 @@ Stores the complete snapshot of current analysis results. Path: `~/.claude/sbti-
   "pattern": "",
   "meta": {
     "analyzedAt": "", "messageCount": 0, "lastMessageIndex": 0,
-    "confidence": "", "lang": "", "sourceFiles": [], "analysisMode": ""
+    "confidence": "", "lang": "", "sourceFiles": [], "analysisMode": "",
+    "dataSource": "claude"
   },
   "buddyName": ""
 }
@@ -229,6 +230,7 @@ Stores the complete snapshot of current analysis results. Path: `~/.claude/sbti-
 - `dimensions`: S1 through So3, 15 dimensions total, each containing raw (0-100), level (L/M/H), label (dimension label)
 - `pattern`: L/M/H pattern string, format `XXX-XXX-XXX-XXX-XXX` (corresponding to S-E-A-Ac-So)
 - `meta.confidence`: do not generate (<20 msgs) / "Early Sketch" (20-50) / "Clear Portrait" (50-200) / "Deep Portrait" (>200)
+- `meta.dataSource`: `claude` (Claude Code only), `codex` (Codex only), or `both` (merged from both sources)
 - `meta.analysisMode`: `quick` (last 50 messages) or `full` (all messages)
 - `meta.lang`: Detected user primary language code (`zh`/`en`/`ja`/`ko`/`es`/`fr`/`de`/`pt`/`ru`), determines buddy output language
 - `buddyName`: Buddy name derived from type (see §1.1 mapping), does not change with language

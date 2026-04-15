@@ -32,9 +32,25 @@ If ambiguous, ask the user which action they want.
 
 **IMPORTANT**: When this command is triggered, you MUST execute the full analysis pipeline (Steps 0-7) below. Do NOT skip the analysis even if a companion skill or profile.json already exists — the user explicitly wants a fresh analysis. Do NOT respond as the buddy persona; instead, act as the SBTI analyzer.
 
-### Step 0: Ask analysis mode
+### Step 0a: Ask data source
 
-Before reading any data, ask the user:
+Before reading any data, check which conversation history sources exist:
+- `~/.claude/history.jsonl` (Claude Code)
+- `~/.codex/history.jsonl` (OpenAI Codex)
+
+**Auto-detect**: If only one source exists, use it automatically without asking. If neither exists, tell the user no conversation history was found.
+
+If both sources exist, ask the user:
+
+> **Which conversation history should I analyze?**
+>
+> 1. **Claude Code only** — `~/.claude/history.jsonl` (default)
+> 2. **Codex only** — `~/.codex/history.jsonl`
+> 3. **Both** — Read from both sources for maximum data
+
+Default to **Claude Code only** if the user doesn't specify.
+
+### Step 0b: Ask analysis mode
 
 > **How thorough should the analysis be?**
 >
@@ -45,19 +61,24 @@ Default to **Quick** if the user doesn't specify.
 
 ### Step 1: Locate and read conversation data
 
-Read from ALL available sources:
+Read from sources based on the user's data source selection:
 
-| Source | Path | Message field |
-|--------|------|---------------|
-| Claude Code history | `~/.claude/history.jsonl` | `display` |
-| Claude Code projects | `~/.claude/projects/**/*.jsonl` | `display` |
+| Source | Path | Message field | When to read |
+|--------|------|---------------|--------------|
+| Claude Code history | `~/.claude/history.jsonl` | `display` | "Claude Code" or "Both" |
+| Claude Code projects | `~/.claude/projects/**/*.jsonl` | `display` | "Claude Code" or "Both" |
+| Codex history | `~/.codex/history.jsonl` | `text` | "Codex" or "Both" |
 
-**Quick mode**: Read the last 50 non-empty messages from the primary source.
+**Codex format note**: Codex history lines have `text` (message content), `ts` (unix timestamp), and `session_id` fields. Extract the `text` field for analysis. Use `ts` for time-based analysis (late-night detection, work rhythm).
+
+**When "Both" is selected**: Read from all applicable sources, merge messages, and sort by timestamp if available. Deduplicate near-identical messages that may appear in both histories.
+
+**Quick mode**: Read the last 50 non-empty messages from the primary source (or 25 from each if "Both").
 **Full mode**: Read all messages. For files >500 lines, read in batches of 500.
 
 **Parse each line as JSON, extract message text.** Skip: empty, null, slash commands (starts with `/`), system messages.
 
-**Minimum threshold**: < 20 messages → tell user to accumulate more history. Do not generate.
+**Minimum threshold**: < 20 messages total → tell user to accumulate more history. Do not generate.
 
 ### Step 2: Analyze across 15 SBTI dimensions
 
@@ -295,7 +316,6 @@ chmod +x ~/.claude/sbti-buddy/hooks/stop-animation.sh
 SBTI_DIR="$HOME/.claude/sbti-buddy"
 PROFILE="$SBTI_DIR/profile.json"
 LAST_CHECK="$SBTI_DIR/.last-auto-update"
-HISTORY="$HOME/.claude/history.jsonl"
 
 # Skip if no profile (never analyzed)
 [ ! -f "$PROFILE" ] && exit 0
@@ -306,10 +326,19 @@ NOW=$(date +%s)
 ELAPSED=$(( NOW - LAST_TS ))
 [ "$ELAPSED" -lt 86400 ] && exit 0
 
-# Count new messages since last analysis
+# Count new messages across all configured data sources
 LAST_INDEX=$(jq -r '.meta.lastMessageIndex // 0' "$PROFILE")
-CURRENT_LINES=$(wc -l < "$HISTORY" 2>/dev/null || echo "0")
-NEW_MSGS=$(( CURRENT_LINES - LAST_INDEX ))
+DATA_SOURCE=$(jq -r '.meta.dataSource // "claude"' "$PROFILE")
+TOTAL_LINES=0
+if [ "$DATA_SOURCE" = "claude" ] || [ "$DATA_SOURCE" = "both" ]; then
+  CLAUDE_LINES=$(wc -l < "$HOME/.claude/history.jsonl" 2>/dev/null || echo "0")
+  TOTAL_LINES=$(( TOTAL_LINES + CLAUDE_LINES ))
+fi
+if [ "$DATA_SOURCE" = "codex" ] || [ "$DATA_SOURCE" = "both" ]; then
+  CODEX_LINES=$(wc -l < "$HOME/.codex/history.jsonl" 2>/dev/null || echo "0")
+  TOTAL_LINES=$(( TOTAL_LINES + CODEX_LINES ))
+fi
+NEW_MSGS=$(( TOTAL_LINES - LAST_INDEX ))
 
 # Skip if fewer than 50 new messages
 [ "$NEW_MSGS" -lt 50 ] && exit 0
@@ -646,8 +675,8 @@ If all conditions are met, it sets a flag file. The skill picks up the flag and 
 ### Manual / auto-update steps
 
 1. Read `~/.claude/sbti-buddy/profile.json`. If missing → tell user to run full analysis.
-2. Get `lastMessageIndex` from profile.
-3. Count current lines in history sources.
+2. Get `lastMessageIndex` and `dataSource` from profile.
+3. Count current lines in history sources (based on `dataSource`: claude, codex, or both).
 4. If no new messages → "Your SBTI is up to date." (skip for auto-update)
 5. Read only new messages (from lastMessageIndex+1 to end).
 6. Analyze new messages across 15 dimensions.
